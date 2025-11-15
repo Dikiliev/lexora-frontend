@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
     AppBar,
     Box,
@@ -10,12 +10,24 @@ import {
     Link,
     List,
     ListItem,
+    Menu,
+    MenuItem,
     Stack,
+    Button,
     Toolbar,
     Typography,
 } from "@mui/material";
+import Badge from "@mui/material/Badge";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import PostAddRoundedIcon from "@mui/icons-material/PostAddRounded";
+import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
+import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
+import { useAuthStore } from "../stores/authStore";
+import { useChatNotificationStore } from "../stores/chatNotificationsStore";
 
 const NAV = [
     { label: "Каталог", to: "/search" },
@@ -29,10 +41,18 @@ const FADE_DISTANCE = 120;   // за сколько px увести фон в п
 
 export default function Header() {
     const { pathname } = useLocation();
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [alpha, setAlpha] = useState(1); // 1 = белый фон, 0 = полностью прозрачно
     const raf = useRef<number | null>(null);
+    const logout = useAuthStore((state) => state.logout);
+    const user = useAuthStore((state) => state.user);
+    const isReady = useAuthStore((state) => state.isReady);
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+    const totalUnread = useChatNotificationStore((state) => state.totalUnread);
 
+    const isAuthenticated = Boolean(user);
+    
     // плавный fade: при скролле уменьшаем альфу белого фона и усиливаем blur
     useEffect(() => {
         const onScroll = () => {
@@ -87,6 +107,7 @@ export default function Header() {
                     backgroundColor: bgColor,
                     backdropFilter: `saturate(${1 + (1 - alpha) * 0.1}) blur(${blurPx}px)`,
                     WebkitBackdropFilter: `saturate(${1 + (1 - alpha) * 0.1}) blur(${blurPx}px)`,
+                    border: 'none',
                     transition:
                         "background-color .25s ease, border-color .25s ease, box-shadow .25s ease, backdrop-filter .25s ease, -webkit-backdrop-filter .25s ease",
                     color: "text.primary",
@@ -124,6 +145,242 @@ export default function Header() {
                                 </Link>
                             ))}
                         </Stack>
+
+                        {isReady && (
+                            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ display: { xs: "none", md: "flex" } }}>
+                                {!isAuthenticated ? (
+                                    <>
+                                        <Button
+                                            variant="text"
+                                            color="inherit"
+                                            component={RouterLink}
+                                            to="/login"
+                                            startIcon={<LoginRoundedIcon />}
+                                        >
+                                            Войти
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            component={RouterLink}
+                                            to="/register"
+                                            startIcon={<PersonAddAltRoundedIcon />}
+                                        >
+                                            Регистрация
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        {user?.role === "client" && (
+                                            <>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="primary"
+                                                    startIcon={
+                                                        <Badge
+                                                            color="error"
+                                                            max={99}
+                                                            badgeContent={totalUnread}
+                                                            invisible={!totalUnread}
+                                                            overlap="circular"
+                                                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                                                            sx={{
+                                                                "& .MuiBadge-badge": {
+                                                                    fontSize: 10,
+                                                                    height: 18,
+                                                                    minWidth: 18,
+                                                                    px: 0.5,
+                                                                },
+                                                            }}
+                                                        >
+                                                            <ChatBubbleOutlineRoundedIcon />
+                                                        </Badge>
+                                                    }
+                                                    component={RouterLink}
+                                                    to="/chats"
+                                                >
+                                                    Чаты
+                                                </Button>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="primary"
+                                                    startIcon={<PostAddRoundedIcon />}
+                                                    component={RouterLink}
+                                                    to="/post-job"
+                                                >
+                                                    Разместить заказ
+                                                </Button>
+                                            </>
+                                        )}
+                                        {user?.role === "translator" && (
+                                            <>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="primary"
+                                                    startIcon={
+                                                        <Badge
+                                                            color="error"
+                                                            max={99}
+                                                            badgeContent={totalUnread}
+                                                            invisible={!totalUnread}
+                                                            overlap="circular"
+                                                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                                                            sx={{
+                                                                "& .MuiBadge-badge": {
+                                                                    fontSize: 10,
+                                                                    height: 18,
+                                                                    minWidth: 18,
+                                                                    px: 0.5,
+                                                                },
+                                                            }}
+                                                        >
+                                                            <ChatBubbleOutlineRoundedIcon />
+                                                        </Badge>
+                                                    }
+                                                    component={RouterLink}
+                                                    to="/translator/chats"
+                                                >
+                                                    Чаты
+                                                </Button>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="primary"
+                                                    component={RouterLink}
+                                                    to="/translator/settings"
+                                                >
+                                                    Профиль
+                                                </Button>
+                                            </>
+                                        )}
+                                        <Button
+                                            variant="text"
+                                            color="inherit"
+                                            startIcon={<AccountCircleRoundedIcon />}
+                                            onClick={(event) => setMenuAnchor(event.currentTarget)}
+                                        >
+                                            {user?.email || "Профиль"}
+                                        </Button>
+                                        <Menu
+                                            anchorEl={menuAnchor}
+                                            open={Boolean(menuAnchor)}
+                                            onClose={() => setMenuAnchor(null)}
+                                            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                                            transformOrigin={{ vertical: "top", horizontal: "right" }}
+                                        >
+                                            {user?.role === "client" && (
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        setMenuAnchor(null);
+                                                        navigate("/chats");
+                                                    }}
+                                                >
+                                                    <Stack
+                                                        direction="row"
+                                                        alignItems="center"
+                                                        justifyContent="space-between"
+                                                        sx={{ width: "100%" }}
+                                                    >
+                                                        <Stack direction="row" spacing={1.5} alignItems="center">
+                                                            <ChatBubbleOutlineRoundedIcon fontSize="small" />
+                                                            <Typography variant="inherit">Чаты</Typography>
+                                                        </Stack>
+                                                        {totalUnread > 0 && (
+                                                            <Box
+                                                                component="span"
+                                                                sx={{
+                                                                    backgroundColor: "primary.main",
+                                                                    color: "primary.contrastText",
+                                                                    borderRadius: 10,
+                                                                    fontSize: 12,
+                                                                    fontWeight: 700,
+                                                                    lineHeight: 1,
+                                                                    px: 1,
+                                                                    py: 0.25,
+                                                                    minWidth: 28,
+                                                                    textAlign: "center",
+                                                                }}
+                                                            >
+                                                                {totalUnread > 99 ? "99+" : totalUnread}
+                                                            </Box>
+                                                        )}
+                                                    </Stack>
+                                                </MenuItem>
+                                            )}
+                                            {user?.role === "client" && (
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        setMenuAnchor(null);
+                                                        navigate("/post-job");
+                                                    }}
+                                                >
+                                                    <PostAddRoundedIcon fontSize="small" style={{ marginRight: 12 }} />
+                                                    Разместить заказ
+                                                </MenuItem>
+                                            )}
+                                            {user?.role === "translator" && (
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        setMenuAnchor(null);
+                                                        navigate("/translator/chats");
+                                                    }}
+                                                >
+                                                    <Stack
+                                                        direction="row"
+                                                        alignItems="center"
+                                                        justifyContent="space-between"
+                                                        sx={{ width: "100%" }}
+                                                    >
+                                                        <Stack direction="row" spacing={1.5} alignItems="center">
+                                                            <ChatBubbleOutlineRoundedIcon fontSize="small" />
+                                                            <Typography variant="inherit">Чаты</Typography>
+                                                        </Stack>
+                                                        {totalUnread > 0 && (
+                                                            <Box
+                                                                component="span"
+                                                                sx={{
+                                                                    backgroundColor: "primary.main",
+                                                                    color: "primary.contrastText",
+                                                                    borderRadius: 10,
+                                                                    fontSize: 12,
+                                                                    fontWeight: 700,
+                                                                    lineHeight: 1,
+                                                                    px: 1,
+                                                                    py: 0.25,
+                                                                    minWidth: 28,
+                                                                    textAlign: "center",
+                                                                }}
+                                                            >
+                                                                {totalUnread > 99 ? "99+" : totalUnread}
+                                                            </Box>
+                                                        )}
+                                                    </Stack>
+                                                </MenuItem>
+                                            )}
+                                            {user?.role === "translator" && (
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        setMenuAnchor(null);
+                                                        navigate("/translator/settings");
+                                                    }}
+                                                >
+                                                    <AccountCircleRoundedIcon fontSize="small" style={{ marginRight: 12 }} />
+                                                    Настройки профиля
+                                                </MenuItem>
+                                            )}
+                                            <MenuItem
+                                                onClick={() => {
+                                                    setMenuAnchor(null);
+                                                    logout();
+                                                    navigate("/");
+                                                }}
+                                            >
+                                                <LogoutRoundedIcon fontSize="small" style={{ marginRight: 12 }} />
+                                                Выйти
+                                            </MenuItem>
+                                        </Menu>
+                                    </>
+                                )}
+                            </Stack>
+                        )}
 
                         {/* Бургер (мобилка) */}
                         <IconButton
@@ -176,6 +433,138 @@ export default function Header() {
                             </Link>
                         </ListItem>
                     ))}
+                    {isReady && (
+                        <>
+                            <Divider sx={{ my: 2 }} />
+                            <Box sx={{ px: 2, display: { xs: "block", md: "none" } }}>
+                                {!isAuthenticated ? (
+                                    <Stack spacing={1}>
+                                        <Button
+                                            fullWidth
+                                            variant="outlined"
+                                            component={RouterLink}
+                                            to="/login"
+                                            startIcon={<LoginRoundedIcon />}
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            Войти
+                                        </Button>
+                                        <Button
+                                            fullWidth
+                                            variant="contained"
+                                            component={RouterLink}
+                                            to="/register"
+                                            startIcon={<PersonAddAltRoundedIcon />}
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            Регистрация
+                                        </Button>
+                                    </Stack>
+                                ) : (
+                                    <Stack spacing={1}>
+                                        {user?.role === "client" && (
+                                            <>
+                                                <Button
+                                                    fullWidth
+                                                    variant="outlined"
+                                                    component={RouterLink}
+                                                    to="/chats"
+                                                    startIcon={
+                                                        <Badge
+                                                            color="error"
+                                                            max={99}
+                                                            badgeContent={totalUnread}
+                                                            invisible={!totalUnread}
+                                                            overlap="circular"
+                                                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                                                            sx={{
+                                                                "& .MuiBadge-badge": {
+                                                                    fontSize: 10,
+                                                                    height: 18,
+                                                                    minWidth: 18,
+                                                                    px: 0.5,
+                                                                },
+                                                            }}
+                                                        >
+                                                            <ChatBubbleOutlineRoundedIcon />
+                                                        </Badge>
+                                                    }
+                                                    onClick={() => setOpen(false)}
+                                                >
+                                                    Чаты
+                                                </Button>
+                                                <Button
+                                                    fullWidth
+                                                    variant="outlined"
+                                                    component={RouterLink}
+                                                    to="/post-job"
+                                                    startIcon={<PostAddRoundedIcon />}
+                                                    onClick={() => setOpen(false)}
+                                                >
+                                                    Разместить заказ
+                                                </Button>
+                                            </>
+                                        )}
+                                        {user?.role === "translator" && (
+                                            <>
+                                                <Button
+                                                    fullWidth
+                                                    variant="outlined"
+                                                    component={RouterLink}
+                                                    to="/translator/chats"
+                                                    startIcon={
+                                                        <Badge
+                                                            color="error"
+                                                            max={99}
+                                                            badgeContent={totalUnread}
+                                                            invisible={!totalUnread}
+                                                            overlap="circular"
+                                                            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                                                            sx={{
+                                                                "& .MuiBadge-badge": {
+                                                                    fontSize: 10,
+                                                                    height: 18,
+                                                                    minWidth: 18,
+                                                                    px: 0.5,
+                                                                },
+                                                            }}
+                                                        >
+                                                            <ChatBubbleOutlineRoundedIcon />
+                                                        </Badge>
+                                                    }
+                                                    onClick={() => setOpen(false)}
+                                                >
+                                                    Чаты
+                                                </Button>
+                                                <Button
+                                                    fullWidth
+                                                    variant="outlined"
+                                                    component={RouterLink}
+                                                    to="/translator/settings"
+                                                    onClick={() => setOpen(false)}
+                                                >
+                                                    Настройки профиля
+                                                </Button>
+                                            </>
+                                        )}
+                                        <Button
+                                            fullWidth
+                                            variant="text"
+                                            color="inherit"
+                                            startIcon={<LogoutRoundedIcon />}
+                                            onClick={() => {
+                                                logout();
+                                                setOpen(false);
+                                                navigate("/");
+                                            }}
+                                        >
+                                            Выйти
+                                        </Button>
+                                    </Stack>
+                                )}
+                            </Box>
+                        </>
+                    )}
                 </List>
             </Drawer>
         </>

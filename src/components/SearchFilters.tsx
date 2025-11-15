@@ -1,81 +1,107 @@
-import { observer } from "mobx-react-lite";
-import {
-    Autocomplete,
-    Box,
-    Button,
-    Chip,
-    Divider,
-    FormControlLabel,
-    Slider,
-    Stack,
-    Switch,
-    TextField,
-    Typography,
-} from "@mui/material";
-import { LANGS, DOMAINS } from "../utils/constants";
-import { filterStore } from "../stores/filterStore";
+import { Autocomplete, Box, Button, MenuItem, Slider, Stack, TextField, Typography } from "@mui/material";
+import type { SpecializationOption } from "../pages/translator-settings/types";
+import type { TranslatorSearchFilters } from "../pages/search/useTranslatorSearch";
 
-type Props = {
-    verifiedOnly: boolean;
-    onVerifiedChange: (v: boolean) => void;
-    onReset?: () => void;
-};
+interface SearchFiltersProps {
+    filters: TranslatorSearchFilters;
+    onFiltersChange: (patch: Partial<TranslatorSearchFilters>) => void;
+    onReset: () => void;
+    specializationOptions: SpecializationOption[];
+    languageOptions: string[];
+    isLoading?: boolean;
+}
 
-const SearchFilters = observer(({ verifiedOnly, onVerifiedChange, onReset }: Props) => {
+function normalizeLanguage(value: string | null): string | null {
+    if (!value) return null;
+    const trimmed = value.trim();
+    return trimmed.length === 0 ? null : trimmed;
+}
+
+const SearchFilters = ({
+    filters,
+    onFiltersChange,
+    onReset,
+    specializationOptions,
+    languageOptions,
+    isLoading,
+}: SearchFiltersProps) => {
+    const handleLanguageChange = (key: "languageFrom" | "languageTo") => (_: unknown, value: string | null) => {
+        onFiltersChange({ [key]: normalizeLanguage(value) });
+    };
+
+    const handleLanguageInputChange = (key: "languageFrom" | "languageTo") => (_: unknown, value: string) => {
+        onFiltersChange({ [key]: normalizeLanguage(value) });
+    };
+
     return (
         <Box sx={{ p: 2.5 }}>
             <Stack spacing={2.5}>
                 <Typography variant="h6">Фильтры</Typography>
 
                 <Autocomplete
-                    options={LANGS}
-                    value={filterStore.fromLang}
-                    onChange={(_, v) => filterStore.setFrom(v)}
-                    renderInput={(p) => <TextField {...p} label="С языка" placeholder="Выберите" />}
+                    freeSolo
+                    options={languageOptions}
+                    value={filters.languageFrom ?? ""}
+                    onChange={handleLanguageChange("languageFrom")}
+                    onInputChange={handleLanguageInputChange("languageFrom")}
+                    loading={isLoading}
+                    renderInput={(params) => <TextField {...params} label="С языка" placeholder="Например: en" />}
                 />
 
                 <Autocomplete
-                    options={LANGS}
-                    value={filterStore.toLang}
-                    onChange={(_, v) => filterStore.setTo(v)}
-                    renderInput={(p) => <TextField {...p} label="На язык" placeholder="Выберите" />}
+                    freeSolo
+                    options={languageOptions}
+                    value={filters.languageTo ?? ""}
+                    onChange={handleLanguageChange("languageTo")}
+                    onInputChange={handleLanguageInputChange("languageTo")}
+                    loading={isLoading}
+                    renderInput={(params) => <TextField {...params} label="На язык" placeholder="Например: ru" />}
                 />
 
-                <Divider />
+                <TextField
+                    select
+                    label="Специализация"
+                    value={filters.specializationId ?? ""}
+                    onChange={(event) =>
+                        onFiltersChange({
+                            specializationId: event.target.value === "" ? null : Number(event.target.value),
+                        })
+                    }
+                >
+                    <MenuItem value="">Все</MenuItem>
+                    {specializationOptions.map((option) => (
+                        <MenuItem key={option.id} value={option.id}>
+                            {option.title}
+                        </MenuItem>
+                    ))}
+                </TextField>
 
                 <Stack spacing={1}>
-                    <Typography variant="subtitle2">Тематики</Typography>
-                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                        {DOMAINS.map((d) => (
-                            <Chip
-                                key={d}
-                                label={d}
-                                onClick={() => filterStore.toggleCategory(d)}
-                                color={filterStore.categories.includes(d) ? "primary" : "default"}
-                                sx={{ borderRadius: 999 }}
-                            />
-                        ))}
-                    </Box>
-                </Stack>
-
-                <Stack spacing={1}>
-                    <Typography variant="subtitle2">Ставка (₽/час)</Typography>
-                    <Slider
-                        value={filterStore.rateRange}
-                        min={500}
-                        max={4000}
-                        step={50}
-                        onChange={(_, v) => filterStore.setRate(v as number[])}
+                    <Typography variant="subtitle2">Максимальная ставка (за час)</Typography>
+                    <TextField
+                        type="number"
+                        inputProps={{ min: 0 }}
+                        value={filters.maxRate ?? ""}
+                        onChange={(event) =>
+                            onFiltersChange({
+                                maxRate: event.target.value === "" ? null : Number(event.target.value),
+                            })
+                        }
+                        placeholder="Не ограничено"
                     />
-                    <Typography color="text.secondary">
-                        {filterStore.rateRange[0]}–{filterStore.rateRange[1]} ₽
-                    </Typography>
                 </Stack>
 
-                <FormControlLabel
-                    control={<Switch checked={verifiedOnly} onChange={(e) => onVerifiedChange(e.target.checked)} />}
-                    label="Только проверенные"
-                />
+                <Stack spacing={1}>
+                    <Typography variant="subtitle2">Минимальный рейтинг</Typography>
+                    <Slider
+                        value={filters.minRating ?? 0}
+                        min={0}
+                        max={5}
+                        step={0.5}
+                        onChange={(_, value) => onFiltersChange({ minRating: Number(value) })}
+                    />
+                    <Typography color="text.secondary">{filters.minRating ?? 0}+</Typography>
+                </Stack>
 
                 <Button variant="text" color="inherit" onClick={onReset} sx={{ alignSelf: "flex-start" }}>
                     Сбросить фильтры
@@ -83,6 +109,6 @@ const SearchFilters = observer(({ verifiedOnly, onVerifiedChange, onReset }: Pro
             </Stack>
         </Box>
     );
-});
+};
 
 export default SearchFilters;

@@ -18,12 +18,6 @@ export default function TrustBar() {
         <Paper
             sx={{
                 p: { xs: 1.5, md: 2 },
-                borderRadius: 3,
-                border: "1px solid",
-                borderColor: "divider",
-                boxShadow: "0 6px 18px rgba(10,11,13,.04)",
-                background:
-                    "linear-gradient(180deg, rgba(255,77,46,0.03) 0%, rgba(255,255,255,0) 100%)",
                 overflow: "hidden",
             }}
         >
