@@ -1,17 +1,19 @@
 // ... твои импорты и палитра как было
-import { alpha, createTheme } from "@mui/material/styles";
+import {alpha, createTheme, type PaletteOptions} from "@mui/material/styles";
 
 const primary = "#FF4D2E";
 const bg = "#fff";
 
+const PALETTE: PaletteOptions = {
+    mode: "light",
+    primary: { main: primary },
+    background: { default: bg, paper: "#FFFFFF" },
+    divider: "#E6E8EC",
+    text: { primary: "#0F172A", secondary: "rgba(15,23,42,.64)" },
+}
+
 export default createTheme({
-    palette: {
-        mode: "light",
-        primary: { main: primary },
-        background: { default: bg, paper: "#FFFFFF" },
-        divider: "#E6E8EC",
-        text: { primary: "#0F172A", secondary: "rgba(15,23,42,.64)" },
-    },
+    palette: PALETTE,
     shape: { borderRadius: 14 },
     typography: {
         fontFamily:
@@ -22,6 +24,19 @@ export default createTheme({
     },
     components: {
         MuiCssBaseline: { styleOverrides: { body: { backgroundColor: bg } } },
+
+        MuiPaper: {
+            defaultProps: {
+                elevation: 0
+            },
+            styleOverrides: {
+                root: {
+                    borderRadius: 2,
+                    border: "1px solid",
+                    borderColor: "divider",
+                }
+            }
+        },
 
         // ссылки без подчёркивания по умолчанию
         MuiLink: {
