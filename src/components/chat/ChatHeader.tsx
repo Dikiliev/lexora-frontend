@@ -47,3 +47,4 @@ export function ChatHeader({ counterparty, selectedThread, isClient, onOpenOrder
     );
 }
 
+
