@@ -53,6 +53,9 @@ const components: NonNullable<ThemeOptions["components"]> = {
             body: {
                 backgroundColor: COLORS.backgroundDefault,
             },
+            html: {
+                scrollBehavior: "smooth",
+            },
         },
     },
     MuiPaper: {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 
 import type { ChatMessageDTO, ChatOrderDTO, CreateChatOrderPayload, RequestOrderChangePayload } from "../utils/chat";
@@ -23,6 +23,12 @@ interface UseChatOrdersOptions {
 }
 
 export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOptions) {
+    const onErrorRef = useRef(onError);
+
+    useEffect(() => {
+        onErrorRef.current = onError;
+    }, [onError]);
+
     const [orders, setOrders] = useState<ChatOrderDTO[]>([]);
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [orderDialogOpen, setOrderDialogOpen] = useState(false);
@@ -83,10 +89,10 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
             .then((data) => setOrders(data))
             .catch((error) => {
                 console.error("Не удалось загрузить заказы", error);
-                onError?.(error instanceof Error ? error.message : "Не удалось загрузить заказы");
+                onErrorRef.current?.(error instanceof Error ? error.message : "Не удалось загрузить заказы");
             })
             .finally(() => setOrdersLoading(false));
-    }, [selectedThreadId, onError]);
+    }, [selectedThreadId]);
 
     const resetOrderForm = useCallback(
         () =>
@@ -181,12 +187,12 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
                     upsertOrder(updated);
                 }
             } catch (error) {
-                onError?.(error instanceof Error ? error.message : "Не удалось выполнить действие с заказом");
+                onErrorRef.current?.(error instanceof Error ? error.message : "Не удалось выполнить действие с заказом");
             } finally {
                 setActiveOrderAction((prev) => ({ ...prev, [order.id]: null }));
             }
         },
-        [upsertOrder, onError],
+        [upsertOrder],
     );
 
     const handleOpenRequestChange = useCallback((order: ChatOrderDTO) => {
@@ -236,12 +242,12 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
                     deadline: "",
                 });
             } catch (error) {
-                onError?.(error instanceof Error ? error.message : "Не удалось обновить заказ");
+                onErrorRef.current?.(error instanceof Error ? error.message : "Не удалось обновить заказ");
             } finally {
                 setActiveOrderAction((prev) => ({ ...prev, [targetId]: null }));
             }
         },
-        [requestChangeTarget, requestChangeForm, upsertOrder, onError],
+        [requestChangeTarget, requestChangeForm, upsertOrder],
     );
 
     const handleUploadOrderFile = useCallback(
@@ -255,12 +261,12 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
                     ),
                 );
             } catch (error) {
-                onError?.(error instanceof Error ? error.message : "Не удалось загрузить файл");
+                onErrorRef.current?.(error instanceof Error ? error.message : "Не удалось загрузить файл");
             } finally {
                 setActiveOrderAction((prev) => ({ ...prev, [order.id]: null }));
             }
         },
-        [onError],
+        [],
     );
 
     return {

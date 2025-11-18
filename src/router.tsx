@@ -9,6 +9,10 @@ import Register from "./pages/Register";
 import TranslatorSettings from "./pages/TranslatorSettings";
 import TranslatorChats from "./pages/TranslatorChats";
 import ClientChats from "./pages/ClientChats";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import FAQ from "./pages/FAQ";
+import About from "./pages/About";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -53,6 +57,10 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
+            { path: "terms", element: <Terms /> },
+            { path: "privacy", element: <Privacy /> },
+            { path: "faq", element: <FAQ /> },
+            { path: "about", element: <About /> },
         ],
     },
 ]);

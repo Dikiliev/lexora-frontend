@@ -100,10 +100,43 @@ export function ChatOrderCard({
                     </Box>
                     <Chip
                         label={statusMeta.label}
-                        color={statusMeta.color}
                         icon={statusMeta.icon}
                         size="small"
-                        sx={{ fontWeight: 700 }}
+                        sx={{
+                            fontWeight: 700,
+                            backgroundColor: (theme) => {
+                                switch (statusMeta.color) {
+                                    case "success":
+                                        return theme.palette.success.main;
+                                    case "error":
+                                        return theme.palette.error.main;
+                                    case "warning":
+                                        return theme.palette.warning.main;
+                                    case "info":
+                                        return theme.palette.info.main;
+                                    default:
+                                        return theme.palette.grey[300];
+                                }
+                            },
+                            color: (theme) => {
+                                switch (statusMeta.color) {
+                                    case "success":
+                                        return theme.palette.success.contrastText;
+                                    case "error":
+                                        return theme.palette.error.contrastText;
+                                    case "warning":
+                                        return theme.palette.warning.contrastText;
+                                    case "info":
+                                        return theme.palette.info.contrastText;
+                                    default:
+                                        return theme.palette.text.primary;
+                                }
+                            },
+                            border: "none",
+                            "& .MuiChip-icon": {
+                                color: "inherit",
+                            },
+                        }}
                     />
                 </Stack>
 

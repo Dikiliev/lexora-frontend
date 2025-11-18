@@ -4,20 +4,48 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
 import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
 import TimerRoundedIcon from "@mui/icons-material/TimerRounded";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import SectionHeading from "../components/SectionHeading";
-import FeaturedTranslators from "../components/FeaturedTranslators";
 import TrustBar from "../components/TrustBar";
 import HowItWorks from "../components/HowItWorks";
 import DomainsPanel from "../components/DomainsPanel";
 import Testimonials from "../components/Testimonials";
-import FAQCompact from "../components/FAQCompact";
-
 import CTA from "../components/CTA";
 
 export default function Home() {
     const nav = useNavigate();
+    const location = useLocation();
+
+    const attemptsRef = useRef(0);
+
+    useEffect(() => {
+        if (location.hash) {
+            const id = location.hash.substring(1);
+            attemptsRef.current = 0;
+            const maxAttempts = 10;
+            const scrollToElement = () => {
+                attemptsRef.current++;
+                const element = document.getElementById(id);
+                if (element) {
+                    const headerOffset = 100;
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth",
+                    });
+                } else if (attemptsRef.current < maxAttempts) {
+                    // Если элемент еще не найден, пробуем еще раз через небольшую задержку
+                    setTimeout(scrollToElement, 50);
+                }
+            };
+            // Задержка для рендеринга контента, особенно при переходе с других страниц
+            const timeoutId = setTimeout(scrollToElement, 200);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [location.hash, location.pathname]);
 
     return (
         <Box>
@@ -131,24 +159,21 @@ export default function Home() {
             </Container>
 
             {/* ===== HOW IT WORKS ===== */}
-            <Container sx={{ py: { xs: 6, md: 8 } }}>
-                <SectionHeading
-                    title="Как это работает"
-                    subtitle="Три шага от запроса до результата: задайте фильтры, получите точные совпадения, договоритесь напрямую."
-                />
-                <Box sx={{ mt: 3 }}>
-                    <HowItWorks />
-                </Box>
-            </Container>
+            <Box id="how" component="section" sx={{ scrollMarginTop: "100px" }}>
+                <Container sx={{ py: 4 }}>
+                    <SectionHeading
+                        title="Как это работает"
+                        subtitle="Три шага от запроса до результата: задайте фильтры, получите точные совпадения, договоритесь напрямую."
+                    />
+                    <Box sx={{ mt: 3 }}>
+                        <HowItWorks />
+                    </Box>
+                </Container>
+            </Box>
 
             {/* ===== DOMAINS (тематики) ===== */}
-            <Container sx={{ py: { xs: 4, md: 6 } }}>
+            <Container sx={{ py: 4 }}>
                 <DomainsPanel />
-            </Container>
-
-            {/* ===== FEATURED TRANSLATORS ===== */}
-            <Container sx={{ py: { xs: 6, md: 8 } }}>
-                <FeaturedTranslators />
             </Container>
 
             {/* ===== TESTIMONIALS ===== */}
@@ -156,14 +181,6 @@ export default function Home() {
                 <SectionHeading title="Отзывы" subtitle="Реальные кейсы от компаний и специалистов." />
                 <Box sx={{ mt: 2 }}>
                     <Testimonials />
-                </Box>
-            </Container>
-
-            {/* ===== FAQ (компактно) ===== */}
-            <Container sx={{ py: { xs: 6, md: 8 } }}>
-                <SectionHeading title="FAQ" subtitle="Короткие ответы на частые вопросы." />
-                <Box sx={{ mt: 2 }}>
-                    <FAQCompact />
                 </Box>
             </Container>
 

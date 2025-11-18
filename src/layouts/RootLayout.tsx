@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Box, LinearProgress, Snackbar } from "@mui/material";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 import { useAuthStore } from "../stores/authStore";
 import { buildNotificationsWsUrl } from "../utils/chat";
 import { useChatNotificationStore } from "../stores/chatNotificationsStore";
@@ -187,6 +188,7 @@ export default function RootLayout() {
             <Box component="main" flex={1}>
                 <Outlet />
             </Box>
+            <Footer />
             <ChatNotificationCenter />
         </Box>
     );
