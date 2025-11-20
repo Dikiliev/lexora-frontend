@@ -41,8 +41,13 @@ export default function TranslatorSettings() {
 
     if (isLoading && !profile) {
         return (
-            <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+            <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="50vh"
+                >
                     <CircularProgress />
                 </Box>
             </Container>
@@ -51,7 +56,7 @@ export default function TranslatorSettings() {
 
     if (!profile) {
         return (
-            <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
+            <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
                 <Typography color="error" align="center">
                     {error ?? "Профиль не найден"}
                 </Typography>
@@ -65,29 +70,53 @@ export default function TranslatorSettings() {
     };
 
     return (
-        <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
+        <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
             <Paper
                 component="form"
-                elevation={2}
+                elevation={0}
                 onSubmit={handleSubmit}
-                sx={{ p: { xs: 3, md: 5 }, borderRadius: 4, display: "grid", gap: 4 }}
+                sx={{
+                    p: { xs: 2.5, md: 3.5 },
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 3,
+                    boxShadow: "0 18px 40px rgba(15,23,42,.06)",
+                    borderColor: "divider",
+                }}
             >
+                {/* Заголовок */}
                 <Box>
-                    <Typography variant="h4" fontWeight={800} gutterBottom>
+                    <Typography variant="h4" fontWeight={800}>
                         Настройки профиля переводчика
                     </Typography>
-                    <Typography color="text.secondary">
-                        Заполните языковые пары, специализации и стоимость услуг, чтобы клиенты могли быстрее вас найти.
+                    <Typography
+                        color="text.secondary"
+                        variant="body2"
+                        sx={{ mt: 0.75, maxWidth: 640 }}
+                    >
+                        Заполните языковые пары, специализации и ставки, чтобы
+                        клиенты могли быстрее вас найти и оценить ваши услуги.
                     </Typography>
                 </Box>
 
+                {/* Общий фидбек */}
                 <Feedback error={error} success={success} />
 
-                <BasicsSection profile={profile} onFieldChange={updateProfileField} />
-                <NotificationsSection profile={profile} onFieldChange={updateProfileField} />
+                {/* Базовая информация */}
+                <BasicsSection
+                    profile={profile}
+                    onFieldChange={updateProfileField}
+                />
+
+                {/* Уведомления */}
+                <NotificationsSection
+                    profile={profile}
+                    onFieldChange={updateProfileField}
+                />
 
                 <Divider />
 
+                {/* Языковые пары */}
                 <LanguagesSection
                     languages={languages}
                     onAdd={addLanguage}
@@ -99,6 +128,7 @@ export default function TranslatorSettings() {
 
                 <Divider />
 
+                {/* Специализации */}
                 <SpecializationsSection
                     options={specializations}
                     selected={selectedSpecs}
@@ -108,8 +138,23 @@ export default function TranslatorSettings() {
                     onMetaChange={updateSpecMeta}
                 />
 
-                <Box display="flex" justifyContent="flex-end">
-                    <Button variant="contained" size="large" type="submit" disabled={isSaving}>
+                {/* Кнопка сохранения */}
+                <Box
+                    display="flex"
+                    justifyContent="flex-end"
+                    sx={{ pt: 1 }}
+                >
+                    <Button
+                        variant="contained"
+                        size="large"
+                        type="submit"
+                        disabled={isSaving}
+                        startIcon={
+                            isSaving ? (
+                                <CircularProgress size={16} thickness={4} />
+                            ) : null
+                        }
+                    >
                         {isSaving ? "Сохраняем..." : "Сохранить изменения"}
                     </Button>
                 </Box>
