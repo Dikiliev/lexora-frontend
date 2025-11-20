@@ -42,18 +42,22 @@ export function ThreadsSidebar({
                 borderRight: { xs: "none", md: "1px solid" },
                 borderColor: "divider",
                 flexShrink: 0,
+                bgcolor: "background.paper",
             }}
         >
-            <Box sx={{ p: 2 }}>
+            <Box sx={{ px: 2, py: 1.5 }}>
                 <Typography variant="subtitle1" fontWeight={700}>
                     Чаты
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                    Выберите диалог, чтобы увидеть переписку.
                 </Typography>
             </Box>
             <Divider />
             <Box sx={{ flex: 1, overflowY: "auto" }}>
                 {loading ? (
                     <Stack alignItems="center" justifyContent="center" sx={{ py: 4 }}>
-                        <CircularProgress size={28} />
+                        <CircularProgress size={24} />
                     </Stack>
                 ) : error ? (
                     <Alert severity="error" sx={{ m: 2 }}>
@@ -76,11 +80,15 @@ export function ThreadsSidebar({
                                     alignItems="flex-start"
                                     onClick={() => onSelect(thread.id)}
                                     sx={{
-                                        py: 1.5,
+                                        py: 1.25,
                                         px: 2,
-                                        gap: 2,
-                                        borderLeft: isSelected ? "4px solid" : "4px solid transparent",
+                                        gap: 1.5,
+                                        borderLeft: "3px solid transparent",
                                         borderColor: isSelected ? "primary.main" : "transparent",
+                                        bgcolor: isSelected ? "action.hover" : "transparent",
+                                        "&:hover": {
+                                            bgcolor: "action.hover",
+                                        },
                                     }}
                                 >
                                     <Badge
@@ -90,15 +98,26 @@ export function ThreadsSidebar({
                                         overlap="circular"
                                         anchorOrigin={{ vertical: "top", horizontal: "right" }}
                                     >
-                                        <Avatar sx={{ width: 40, height: 40 }}>{info.avatar}</Avatar>
+                                        <Avatar sx={{ width: 40, height: 40, fontSize: 18 }}>
+                                            {info.avatar}
+                                        </Avatar>
                                     </Badge>
                                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                                        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                                        <Stack
+                                            direction="row"
+                                            justifyContent="space-between"
+                                            alignItems="center"
+                                            spacing={1}
+                                        >
                                             <Typography variant="subtitle2" fontWeight={700} noWrap>
                                                 {info.title}
                                             </Typography>
                                             {preview.timeLabel && (
-                                                <Typography variant="caption" color="text.secondary" noWrap>
+                                                <Typography
+                                                    variant="caption"
+                                                    color="text.secondary"
+                                                    noWrap
+                                                >
                                                     {preview.timeLabel}
                                                 </Typography>
                                             )}
@@ -121,4 +140,3 @@ export function ThreadsSidebar({
         </Stack>
     );
 }
-

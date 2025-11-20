@@ -1,4 +1,12 @@
-import { Autocomplete, Box, Button, MenuItem, Slider, Stack, TextField, Typography } from "@mui/material";
+import {
+    Autocomplete,
+    Button,
+    MenuItem,
+    Stack,
+    TextField,
+    Typography,
+    Rating,
+} from "@mui/material";
 import type { SpecializationOption } from "../pages/translator-settings/types";
 import type { TranslatorSearchFilters } from "../pages/search/useTranslatorSearch";
 
@@ -17,6 +25,14 @@ function normalizeLanguage(value: string | null): string | null {
     return trimmed.length === 0 ? null : trimmed;
 }
 
+const RATING_OPTIONS: Array<{ value: number | null; label: string }> = [
+    { value: null, label: "Любой" },
+    { value: 3, label: "3.0+" },
+    { value: 4, label: "4.0+" },
+    { value: 4.5, label: "4.5+" },
+    { value: 5, label: "5.0" },
+];
+
 const SearchFilters = ({
     filters,
     onFiltersChange,
@@ -25,18 +41,28 @@ const SearchFilters = ({
     languageOptions,
     isLoading,
 }: SearchFiltersProps) => {
-    const handleLanguageChange = (key: "languageFrom" | "languageTo") => (_: unknown, value: string | null) => {
-        onFiltersChange({ [key]: normalizeLanguage(value) });
-    };
+    const handleLanguageChange =
+        (key: "languageFrom" | "languageTo") =>
+        (_: unknown, value: string | null) => {
+            onFiltersChange({ [key]: normalizeLanguage(value) });
+        };
 
-    const handleLanguageInputChange = (key: "languageFrom" | "languageTo") => (_: unknown, value: string) => {
-        onFiltersChange({ [key]: normalizeLanguage(value) });
-    };
+    const handleLanguageInputChange =
+        (key: "languageFrom" | "languageTo") =>
+        (_: unknown, value: string) => {
+            onFiltersChange({ [key]: normalizeLanguage(value) });
+        };
+
+    const specializationValue = filters.specializationId ?? "";
+    const selectedRating = filters.minRating ?? null;
 
     return (
-        <Box sx={{ p: 2.5 }}>
-            <Stack spacing={2.5}>
-                <Typography variant="h6">Фильтры</Typography>
+        <Stack spacing={2}>
+            {/* Языковые пары */}
+            <Stack spacing={1}>
+                <Typography variant="caption" color="text.secondary">
+                    Языковая пара
+                </Typography>
 
                 <Autocomplete
                     freeSolo
@@ -45,7 +71,15 @@ const SearchFilters = ({
                     onChange={handleLanguageChange("languageFrom")}
                     onInputChange={handleLanguageInputChange("languageFrom")}
                     loading={isLoading}
-                    renderInput={(params) => <TextField {...params} label="С языка" placeholder="Например: en" />}
+                    size="small"
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="С языка"
+                            placeholder="Например: en"
+                            size="small"
+                        />
+                    )}
                 />
 
                 <Autocomplete
@@ -55,59 +89,137 @@ const SearchFilters = ({
                     onChange={handleLanguageChange("languageTo")}
                     onInputChange={handleLanguageInputChange("languageTo")}
                     loading={isLoading}
-                    renderInput={(params) => <TextField {...params} label="На язык" placeholder="Например: ru" />}
+                    size="small"
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="На язык"
+                            placeholder="Например: ru"
+                            size="small"
+                        />
+                    )}
                 />
+            </Stack>
 
+            {/* Специализация */}
+            <Stack spacing={0.75}>
+                <Typography variant="caption" color="text.secondary">
+                    Специализация
+                </Typography>
                 <TextField
                     select
-                    label="Специализация"
-                    value={filters.specializationId ?? ""}
-                    onChange={(event) =>
+                    size="small"
+                    value={specializationValue}
+                    onChange={(event) => {
+                        const value = event.target.value;
                         onFiltersChange({
-                            specializationId: event.target.value === "" ? null : Number(event.target.value),
-                        })
-                    }
+                            specializationId: value === "" ? null : Number(value),
+                        });
+                    }}
+                    SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (selected) => {
+                            if (selected === "" || selected == null) {
+                                return "Все специализации";
+                            }
+                            const option = specializationOptions.find(
+                                (opt) => opt.id === Number(selected),
+                            );
+                            return option?.title ?? "Все специализации";
+                        },
+                    }}
                 >
-                    <MenuItem value="">Все</MenuItem>
+                    <MenuItem value="">Все специализации</MenuItem>
                     {specializationOptions.map((option) => (
                         <MenuItem key={option.id} value={option.id}>
                             {option.title}
                         </MenuItem>
                     ))}
                 </TextField>
-
-                <Stack spacing={1}>
-                    <Typography variant="subtitle2">Максимальная ставка (за час)</Typography>
-                    <TextField
-                        type="number"
-                        inputProps={{ min: 0 }}
-                        value={filters.maxRate ?? ""}
-                        onChange={(event) =>
-                            onFiltersChange({
-                                maxRate: event.target.value === "" ? null : Number(event.target.value),
-                            })
-                        }
-                        placeholder="Не ограничено"
-                    />
-                </Stack>
-
-                <Stack spacing={1}>
-                    <Typography variant="subtitle2">Минимальный рейтинг</Typography>
-                    <Slider
-                        value={filters.minRating ?? 0}
-                        min={0}
-                        max={5}
-                        step={0.5}
-                        onChange={(_, value) => onFiltersChange({ minRating: Number(value) })}
-                    />
-                    <Typography color="text.secondary">{filters.minRating ?? 0}+</Typography>
-                </Stack>
-
-                <Button variant="text" color="inherit" onClick={onReset} sx={{ alignSelf: "flex-start" }}>
-                    Сбросить фильтры
-                </Button>
             </Stack>
-        </Box>
+
+            {/* Ставка */}
+            <Stack spacing={0.75}>
+                <Typography variant="caption" color="text.secondary">
+                    Максимальная ставка (за час)
+                </Typography>
+                <TextField
+                    type="number"
+                    size="small"
+                    inputProps={{ min: 0 }}
+                    value={filters.maxRate ?? ""}
+                    onChange={(event) =>
+                        onFiltersChange({
+                            maxRate: event.target.value === "" ? null : Number(event.target.value),
+                        })
+                    }
+                    placeholder="Не ограничено"
+                />
+            </Stack>
+
+            {/* Минимальный рейтинг */}
+            <Stack spacing={0.75}>
+                <Typography variant="caption" color="text.secondary">
+                    Минимальный рейтинг
+                </Typography>
+                <TextField
+                    select
+                    size="small"
+                    value={selectedRating ?? ""}
+                    onChange={(event) => {
+                        const value = event.target.value;
+                        onFiltersChange({
+                            minRating: value === "" ? null : Number(value),
+                        });
+                    }}
+                    SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (selected) => {
+                            if (selected === "" || selected == null) {
+                                return "Любой";
+                            }
+                            const num = Number(selected);
+                            const option = RATING_OPTIONS.find((o) => o.value === num);
+                            return option?.label ?? "Любой";
+                        },
+                    }}
+                >
+                    {RATING_OPTIONS.map((option) => (
+                        <MenuItem key={option.label} value={option.value ?? ""}>
+                            {option.value == null ? (
+                                <Typography variant="body2">Любой</Typography>
+                            ) : (
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <Rating
+                                        value={option.value}
+                                        precision={0.5}
+                                        readOnly
+                                        size="small"
+                                        sx={{
+                                            "& .MuiRating-iconFilled": {
+                                                color: "primary.main",
+                                            },
+                                        }}
+                                    />
+                                    <Typography variant="body2">{option.label}</Typography>
+                                </Stack>
+                            )}
+                        </MenuItem>
+                    ))}
+                </TextField>
+            </Stack>
+
+            {/* Сброс */}
+            <Button
+                variant="text"
+                color="inherit"
+                onClick={onReset}
+                size="small"
+                sx={{ alignSelf: "flex-start", mt: 0.5 }}
+            >
+                Сбросить фильтры
+            </Button>
+        </Stack>
     );
 };
 

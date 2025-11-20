@@ -1,25 +1,40 @@
 import { Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const DOMAINS = [
-  "Медицина",
-  "Финансы",
-  "Юриспруденция",
-  "IT",
-  "Маркетинг",
-  "Техника",
-  "Игры",
-  "Наука",
-];
+import { request } from "../utils/api";
+import type { SpecializationOption } from "../pages/translator-settings/types";
 
 const DomainsPanel = () => {
   const navigate = useNavigate();
+  const [specializations, setSpecializations] = useState<SpecializationOption[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleNavigate = (domain: string) => {
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    request<{ results?: SpecializationOption[] } | SpecializationOption[]>("/specializations/")
+      .then((response) => {
+        if (!isMounted) return;
+        const list = Array.isArray(response) ? response : response.results ?? [];
+        setSpecializations(list);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setSpecializations([]);
+        setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleNavigate = (specializationId: number) => {
     navigate({
       pathname: "/search",
-      search: `?spec=${encodeURIComponent(domain.toLowerCase())}`,
+      search: `?spec=${specializationId}`,
     });
   };
 
@@ -75,11 +90,11 @@ const DomainsPanel = () => {
           gap: 1,
         }}
       >
-        {DOMAINS.map((domain) => (
+        {!loading && specializations.map((spec) => (
           <Chip
-            key={domain}
-            label={domain}
-            onClick={() => handleNavigate(domain)}
+            key={spec.id}
+            label={spec.title}
+            onClick={() => handleNavigate(spec.id)}
             clickable
             sx={{
               borderRadius: 999,

@@ -158,21 +158,10 @@ export default function Home() {
                 <TrustBar />
             </Container>
 
-            {/* ===== HOW IT WORKS ===== */}
-            <Box id="how" component="section" sx={{ scrollMarginTop: "100px" }}>
-                <Container sx={{ py: 4 }}>
-                    <SectionHeading
-                        title="Как это работает"
-                        subtitle="Три шага от запроса до результата: задайте фильтры, получите точные совпадения, договоритесь напрямую."
-                    />
-                    <Box sx={{ mt: 3 }}>
-                        <HowItWorks />
-                    </Box>
-                </Container>
-            </Box>
+            <HowItWorks />
 
             {/* ===== DOMAINS (тематики) ===== */}
-            <Container sx={{ py: 4 }}>
+            <Container sx={{ mt: 3, mb: 2 }}>
                 <DomainsPanel />
             </Container>
 

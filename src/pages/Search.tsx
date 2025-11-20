@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
+    Alert,
     Box,
     Button,
     Container,
@@ -16,7 +17,9 @@ import {
     useMediaQuery,
 } from "@mui/material";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { useSearchParams } from "react-router-dom";
+
 import SearchFilters from "../components/SearchFilters";
 import TranslatorCard from "../components/TranslatorCard";
 import { useTranslatorSearch, type TranslatorSearchFilters } from "./search/useTranslatorSearch";
@@ -52,16 +55,30 @@ function parseNumber(value: string | null): number | null {
 export default function Search() {
     const isMdUp = useMediaQuery("(min-width:900px)");
     const [searchParams, setSearchParams] = useSearchParams();
-    const [filters, setFilters] = useState<TranslatorSearchFilters>(() => ({ ...DEFAULT_FILTERS }));
+
+    const [filters, setFilters] = useState<TranslatorSearchFilters>({ ...DEFAULT_FILTERS });
     const [sort, setSort] = useState<SortKey>("relevance");
     const [page, setPage] = useState(1);
     const [isFiltersDrawerOpen, setFiltersDrawerOpen] = useState(false);
+
     const [specializations, setSpecializations] = useState<SpecializationOption[]>([]);
     const [specializationsLoading, setSpecializationsLoading] = useState(true);
     const [pendingSpecializationKey, setPendingSpecializationKey] = useState<string | null>(null);
+
     const [languageOptions, setLanguageOptions] = useState<string[]>([]);
 
-    // --- initial params parsing ---
+    // Считаем активные фильтры
+    const activeFiltersCount = useMemo(() => {
+        let count = 0;
+        if (filters.languageFrom) count++;
+        if (filters.languageTo) count++;
+        if (filters.specializationId) count++;
+        if (filters.maxRate != null) count++;
+        if (filters.minRating != null) count++;
+        return count;
+    }, [filters]);
+
+    // Первичный разбор query-параметров
     useEffect(() => {
         const from = searchParams.get("from");
         const to = searchParams.get("to");
@@ -90,12 +107,14 @@ export default function Search() {
         if (pageParam && pageParam > 0) {
             setPage(pageParam);
         }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    // --- load specializations ---
+    // Загрузка специализаций
     useEffect(() => {
         let isMounted = true;
         setSpecializationsLoading(true);
+
         request<{ results?: SpecializationOption[] } | SpecializationOption[]>("/specializations/")
             .then((response) => {
                 if (!isMounted) return;
@@ -106,7 +125,9 @@ export default function Search() {
                 if (pendingSpecializationKey) {
                     const keyLower = pendingSpecializationKey.toLowerCase();
                     const matched = list.find(
-                        (item) => item.slug?.toLowerCase() === keyLower || item.title.toLowerCase() === keyLower,
+                        (item) =>
+                            item.slug?.toLowerCase() === keyLower ||
+                            item.title.toLowerCase() === keyLower,
                     );
                     if (matched) {
                         setFilters((prev) => ({ ...prev, specializationId: matched.id }));
@@ -132,7 +153,7 @@ export default function Search() {
         filters,
     });
 
-    // --- accumulate language options ---
+    // Накопление языков из выдачи
     useEffect(() => {
         if (!languages.length) return;
         setLanguageOptions((prev) => {
@@ -142,7 +163,7 @@ export default function Search() {
         });
     }, [languages]);
 
-    // --- sync URL ---
+    // Синк URL со стейтом
     useEffect(() => {
         const params = new URLSearchParams();
         if (filters.languageFrom) params.set("from", filters.languageFrom);
@@ -156,20 +177,23 @@ export default function Search() {
         setSearchParams(params, { replace: true });
     }, [filters, sort, page, setSearchParams]);
 
-    const handleFiltersChange = (patch: Partial<TranslatorSearchFilters>) => {
-        setFilters((prev) => ({ ...prev, ...patch }));
-        setPage(1);
-    };
+    const handleFiltersChange = useCallback(
+        (patch: Partial<TranslatorSearchFilters>) => {
+            setFilters((prev) => ({ ...prev, ...patch }));
+            setPage(1);
+        },
+        [],
+    );
 
-    const handleResetFilters = () => {
+    const handleResetFilters = useCallback(() => {
         setFilters({ ...DEFAULT_FILTERS });
         setPage(1);
-    };
+    }, []);
 
-    const handleSortChange = (value: string) => {
+    const handleSortChange = useCallback((value: string) => {
         setSort(value as SortKey);
         setPage(1);
-    };
+    }, []);
 
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const pageClamped = Math.min(page, totalPages);
@@ -180,23 +204,43 @@ export default function Search() {
         }
     }, [page, pageClamped]);
 
+    const filtersLoading = specializationsLoading; // фильтры грузятся только от справочников
+
+    // Скелетоны
     const renderSkeletonCards = () =>
-        Array.from({ length: 4 }).map((_, index) => (
-            <Grid key={`skeleton-${index}`} size={{ xs: 12, sm: 6 }}>
+        Array.from({ length: 6 }).map((_, index) => (
+            <Grid key={`skeleton-${index}`} size={{ xs: 12, sm: 6, md: 4 }}>
                 <Paper sx={{ p: 2 }}>
-                    <Skeleton variant="rectangular" height={120} />
+                    <Stack direction="row" spacing={2}>
+                        <Skeleton variant="circular" width={48} height={48} />
+                        <Box sx={{ flex: 1 }}>
+                            <Skeleton variant="text" width="70%" />
+                            <Skeleton variant="text" width="45%" />
+                            <Skeleton
+                                variant="rectangular"
+                                height={22}
+                                sx={{ mt: 1, borderRadius: 1 }}
+                            />
+                        </Box>
+                    </Stack>
                 </Paper>
             </Grid>
         ));
 
+    // Пустое состояние
     const renderEmptyState = () => (
         <Grid size={{ xs: 12 }}>
-            <Paper sx={{ p: 4, textAlign: "center" }}>
-                <Typography variant="h6">Ничего не найдено</Typography>
+            <Paper sx={{ p: 3, textAlign: "center" }}>
+                <Typography variant="subtitle1">Ничего не найдено</Typography>
                 <Typography color="text.secondary" sx={{ mt: 0.5 }}>
                     Измените параметры поиска или сбросьте фильтры.
                 </Typography>
-                <Button onClick={handleResetFilters} sx={{ mt: 2 }} variant="outlined">
+                <Button
+                    onClick={handleResetFilters}
+                    sx={{ mt: 2 }}
+                    variant="outlined"
+                    size="small"
+                >
                     Сбросить всё
                 </Button>
             </Paper>
@@ -204,52 +248,76 @@ export default function Search() {
     );
 
     return (
-        <Container sx={{ py: { xs: 4, md: 6 } }}>
-            <Grid container spacing={2}>
+        <Container sx={{ py: { xs: 3, md: 4 } }}>
+            <Grid container spacing={2.5}>
+                {/* Сайдбар с фильтрами */}
                 <Grid size={{ xs: 12, md: 3 }}>
                     {isMdUp ? (
-                        <Paper sx={{ border: "1px solid", borderColor: "divider" }}>
+                        <Paper
+                            sx={{
+                                p: 2,
+                                position: "sticky",
+                                top: 80,
+                            }}
+                        >
                             <SearchFilters
                                 filters={filters}
                                 onFiltersChange={handleFiltersChange}
                                 onReset={handleResetFilters}
                                 specializationOptions={specializations}
                                 languageOptions={languageOptions}
-                                isLoading={isLoading || specializationsLoading}
+                                isLoading={filtersLoading}
                             />
                         </Paper>
                     ) : (
-                        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                            <Button variant="outlined" startIcon={<TuneRoundedIcon />} onClick={() => setFiltersDrawerOpen(true)}>
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ mb: 1.5 }}
+                            alignItems="center"
+                        >
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<TuneRoundedIcon />}
+                                onClick={() => setFiltersDrawerOpen(true)}
+                            >
                                 Фильтры
                             </Button>
-                            <TextField
-                                select
-                                label="Сортировка"
-                                value={sort}
-                                onChange={(event) => handleSortChange(event.target.value)}
-                                sx={{ minWidth: 170 }}
-                            >
-                                {SORT_OPTIONS.map((option) => (
-                                    <MenuItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                            {activeFiltersCount > 0 && (
+                                <Typography variant="body2" color="text.secondary">
+                                    Активно фильтров: {activeFiltersCount}
+                                </Typography>
+                            )}
                         </Stack>
                     )}
                 </Grid>
 
+                {/* Основная колонка */}
                 <Grid size={{ xs: 12, md: 9 }}>
-                    {isMdUp && (
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                            <Typography variant="h5">Найдено: {total}</Typography>
+                    {/* Хедер списка */}
+                    <Paper sx={{ p: 2, mb: 1.5 }}>
+                        <Stack
+                            direction={{ xs: "column", md: "row" }}
+                            spacing={1}
+                            justifyContent="space-between"
+                            alignItems={{ xs: "flex-start", md: "center" }}
+                        >
+                            <Stack spacing={0.25}>
+                                <Typography variant="h6">Переводчики</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Найдено: {total}
+                                    {activeFiltersCount > 0 ? ` · Фильтры: ${activeFiltersCount}` : ""}
+                                </Typography>
+                            </Stack>
+
                             <TextField
                                 select
+                                size="small"
                                 label="Сортировка"
                                 value={sort}
                                 onChange={(event) => handleSortChange(event.target.value)}
-                                sx={{ minWidth: 220 }}
+                                sx={{ minWidth: { xs: 180, md: 220 } }}
                             >
                                 {SORT_OPTIONS.map((option) => (
                                     <MenuItem key={option.value} value={option.value}>
@@ -258,27 +326,32 @@ export default function Search() {
                                 ))}
                             </TextField>
                         </Stack>
-                    )}
+                    </Paper>
 
+                    {/* Выдача */}
                     <Grid container spacing={2}>
                         {isLoading && items.length === 0 && renderSkeletonCards()}
+
                         {!isLoading &&
                             items.map((translator) => (
-                                <Grid key={translator.id} size={{ xs: 12, sm: 6 }}>
+                                <Grid key={translator.id} size={{ xs: 12, sm: 12, md: 12 }}>
                                     <TranslatorCard translator={translator} />
                                 </Grid>
                             ))}
-                        {!isLoading && !items.length && renderEmptyState()}
+
+                        {!isLoading && !items.length && !error && renderEmptyState()}
                     </Grid>
 
+                    {/* Ошибка */}
                     {error && (
-                        <Paper sx={{ mt: 3, p: 3 }}>
-                            <Typography color="error">{error}</Typography>
-                        </Paper>
+                        <Box sx={{ mt: 2 }}>
+                            <Alert severity="error">{error}</Alert>
+                        </Box>
                     )}
 
+                    {/* Пагинация */}
                     {total > PAGE_SIZE && (
-                        <Stack alignItems="center" sx={{ mt: 3 }}>
+                        <Stack alignItems="center" sx={{ mt: 2.5 }}>
                             <Pagination
                                 count={totalPages}
                                 page={pageClamped}
@@ -290,25 +363,73 @@ export default function Search() {
                 </Grid>
             </Grid>
 
-            <Drawer anchor="right" open={isFiltersDrawerOpen} onClose={() => setFiltersDrawerOpen(false)} PaperProps={{ sx: { width: 340 } }}>
-                <Box sx={{ p: 2 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="h6">Фильтры</Typography>
-                        <IconButton onClick={() => setFiltersDrawerOpen(false)}>
-                            <TuneRoundedIcon />
+            {/* Мобильный drawer с фильтрами */}
+            <Drawer
+                anchor="right"
+                open={isFiltersDrawerOpen}
+                onClose={() => setFiltersDrawerOpen(false)}
+                PaperProps={{
+                    sx: {
+                        width: 320,
+                        maxWidth: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                    },
+                }}
+            >
+                <Box
+                    sx={{
+                        p: 1.5,
+                        borderBottom: "1px solid",
+                        borderColor: "divider",
+                    }}
+                >
+                    <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                    >
+                        <Box>
+                            <Typography variant="subtitle1">Фильтры</Typography>
+                            {activeFiltersCount > 0 && (
+                                <Typography variant="body2" color="text.secondary">
+                                    Активно: {activeFiltersCount}
+                                </Typography>
+                            )}
+                        </Box>
+                        <IconButton
+                            size="small"
+                            onClick={() => setFiltersDrawerOpen(false)}
+                        >
+                            <CloseRoundedIcon fontSize="small" />
                         </IconButton>
                     </Stack>
                 </Box>
-                <SearchFilters
-                    filters={filters}
-                    onFiltersChange={handleFiltersChange}
-                    onReset={handleResetFilters}
-                    specializationOptions={specializations}
-                    languageOptions={languageOptions}
-                    isLoading={isLoading || specializationsLoading}
-                />
-                <Box sx={{ p: 2, pt: 0 }}>
-                    <Button fullWidth variant="contained" onClick={() => setFiltersDrawerOpen(false)}>
+
+                <Box sx={{ flex: 1, overflow: "auto", p: 1.5 }}>
+                    <SearchFilters
+                        filters={filters}
+                        onFiltersChange={handleFiltersChange}
+                        onReset={handleResetFilters}
+                        specializationOptions={specializations}
+                        languageOptions={languageOptions}
+                        isLoading={filtersLoading}
+                    />
+                </Box>
+
+                <Box
+                    sx={{
+                        p: 1.5,
+                        borderTop: "1px solid",
+                        borderColor: "divider",
+                    }}
+                >
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        size="medium"
+                        onClick={() => setFiltersDrawerOpen(false)}
+                    >
                         Применить
                     </Button>
                 </Box>

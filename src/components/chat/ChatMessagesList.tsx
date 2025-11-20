@@ -10,10 +10,7 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import DoneIcon from "@mui/icons-material/Done";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
-import type {
-    ChatMessageDTO,
-    ChatOrderDTO,
-} from "../../utils/chat";
+import type { ChatMessageDTO, ChatOrderDTO } from "../../utils/chat";
 import { formatMessageTime } from "../../utils/chat";
 import { ChatOrderCard, type ChatOrderAction } from "../ChatOrderCard";
 
@@ -56,10 +53,11 @@ export function ChatMessagesList({
             sx={{
                 flex: 1,
                 overflowY: "auto",
-                px: 3,
+                px: { xs: 2, md: 3 },
                 py: 2,
                 position: "relative",
                 minHeight: 0,
+                bgcolor: "background.default",
             }}
         >
             {ordersLoading && (
@@ -86,7 +84,7 @@ export function ChatMessagesList({
                     Сообщений пока нет. Напишите собеседнику, чтобы начать диалог.
                 </Typography>
             ) : (
-                <Stack spacing={1.5}>
+                <Stack spacing={1.5} sx={{ pb: 1 }}>
                     {messages.map((message) => {
                         if (message.message_type === "system") {
                             const payload = message.payload as { order?: ChatOrderDTO } | undefined;
@@ -115,11 +113,11 @@ export function ChatMessagesList({
                                     </Typography>
                                     <Box
                                         sx={{
-                                            maxWidth: "80%",
-                                            px: 2,
+                                            maxWidth: "70%",
+                                            px: 1.75,
                                             py: 1,
                                             borderRadius: 2,
-                                            bgcolor: "grey.100",
+                                            bgcolor: "grey.50",
                                             color: "text.primary",
                                             whiteSpace: "pre-wrap",
                                         }}
@@ -132,32 +130,44 @@ export function ChatMessagesList({
 
                         const isOwn = selfUserId !== undefined && message.sender === selfUserId;
                         return (
-                            <Stack key={message.id} alignItems={isOwn ? "flex-end" : "flex-start"} spacing={0.5}>
+                            <Stack
+                                key={message.id}
+                                alignItems={isOwn ? "flex-end" : "flex-start"}
+                                spacing={0.5}
+                            >
                                 <Typography variant="caption" color="text.secondary">
                                     {isOwn ? "Вы" : counterpartyTitle ?? "Собеседник"}
                                 </Typography>
                                 <Box
                                     sx={{
-                                        maxWidth: "80%",
-                                        px: 2,
-                                        py: 1.2,
+                                        maxWidth: "70%",
+                                        px: 1.75,
+                                        py: 1.1,
                                         borderRadius: 3,
                                         bgcolor: isOwn ? "primary.main" : "grey.100",
                                         color: isOwn ? "primary.contrastText" : "text.primary",
                                         borderBottomRightRadius: isOwn ? 0 : 3,
                                         borderBottomLeftRadius: isOwn ? 3 : 0,
-                                        boxShadow: 1,
+                                        boxShadow: 0,
                                         whiteSpace: "pre-wrap",
                                     }}
                                 >
                                     {message.text}
                                 </Box>
-                                <Stack direction="row" spacing={1} sx={{ mt: 0.5, pr: isOwn ? 0.5 : 0 }}>
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{ mt: 0.5, pr: isOwn ? 0.5 : 0 }}
+                                >
                                     <Typography variant="caption" color="text.secondary">
                                         {formatMessageTime(message.created_at)}
                                     </Typography>
                                     {isOwn && (
-                                        <Stack direction="row" spacing={0.5} alignItems="center">
+                                        <Stack
+                                            direction="row"
+                                            spacing={0.5}
+                                            alignItems="center"
+                                        >
                                             {message.isFailed ? (
                                                 <Typography variant="caption" color="error">
                                                     ошибка отправки
@@ -167,7 +177,10 @@ export function ChatMessagesList({
                                             ) : message.is_read ? (
                                                 <DoneAllIcon fontSize="inherit" color="primary" />
                                             ) : message.isDelivered ? (
-                                                <DoneAllIcon fontSize="inherit" sx={{ opacity: 0.6 }} />
+                                                <DoneAllIcon
+                                                    fontSize="inherit"
+                                                    sx={{ opacity: 0.6 }}
+                                                />
                                             ) : (
                                                 <DoneIcon fontSize="inherit" sx={{ opacity: 0.6 }} />
                                             )}
@@ -182,4 +195,3 @@ export function ChatMessagesList({
         </Box>
     );
 }
-

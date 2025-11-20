@@ -3,7 +3,7 @@ import {BASE_BORDER_RADIUS, calculateBorderRadius} from "./utils";
 
 const COLORS = {
     primary: "#FF4D2E",
-    backgroundDefault: "#FFFFFF",
+    backgroundDefault: "#ffffff",
     backgroundPaper: "#FFFFFF",
     divider: "#E6E8EC",
     textPrimary: "#0F172A",
@@ -64,8 +64,10 @@ const components: NonNullable<ThemeOptions["components"]> = {
         },
         styleOverrides: {
             root: {
+                backgroundColor: COLORS.backgroundPaper,
+                border: `1px solid ${COLORS.divider}`,
+                boxShadow: "0 6px 18px rgba(10,11,13,.04)",
                 borderRadius: calculateBorderRadius(2),
-                border: "1px solid",
                 borderColor: COLORS.divider,
             },
         },
@@ -89,10 +91,12 @@ const components: NonNullable<ThemeOptions["components"]> = {
                 boxShadow: "0 6px 18px rgba(10,11,13,.04)",
                 borderRadius: calculateBorderRadius(2),
                 transition: "transform .12s ease, box-shadow .12s ease, border-color .12s ease",
+
                 "&:hover": {
+                    backgroundColor: COLORS.backgroundDefault,
                     transform: "translateY(-2px)",
                     boxShadow: "0 12px 28px rgba(10,11,13,.08)",
-                    borderColor: alpha(COLORS.primary, 0.25),
+                    borderColor: alpha(COLORS.primary, 0.5),
                 },
             },
         },
@@ -134,6 +138,10 @@ const components: NonNullable<ThemeOptions["components"]> = {
             elevation: 0,
         },
         styleOverrides: {
+            root: {
+                borderRadius: 0,
+                border: 0,
+            },
             colorDefault: {
                 backdropFilter: "blur(8px)",
             },
