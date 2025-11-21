@@ -80,10 +80,10 @@ const STATUS_META: Record<
     },
 };
 
-function formatPrice(price: string, currency: string): string {
+function formatPrice(price: string, currency: string | { code: string } | null): string {
     const num = Number(price);
     if (!Number.isFinite(num)) return "—";
-    const safeCurrency = currency || "RUB";
+    const safeCurrency = typeof currency === "string" ? currency : currency?.code ?? "RUB";
 
     try {
         return new Intl.NumberFormat("ru-RU", {
@@ -198,7 +198,7 @@ export function ChatOrderCard({
                             color="text.secondary"
                             sx={{ mt: 0.25 }}
                         >
-                            {order.source_lang} → {order.target_lang}
+                            {typeof order.source_lang === "object" ? order.source_lang.name : order.source_lang} → {typeof order.target_lang === "object" ? order.target_lang.name : order.target_lang}
                             {order.volume ? ` · ${order.volume}` : ""}
                         </Typography>
                     </Box>

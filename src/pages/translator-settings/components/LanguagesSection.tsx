@@ -10,33 +10,33 @@ import {
 } from "@mui/material";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import type { LanguageFormState, LanguagePairDTO } from "../types";
-import {
-    CURRENCY_OPTIONS,
-    LANGUAGE_OPTIONS,
-    LANGUAGES_EMPTY_NOTE,
-} from "../constants";
+import type { Currency, Language, LanguageFormState } from "../types";
+import { LANGUAGES_EMPTY_NOTE } from "../constants";
 
 interface LanguagesSectionProps {
     languages: LanguageFormState[];
+    availableLanguages: Language[];
+    availableCurrencies: Currency[];
     onAdd: () => void;
     onRemove: (id: string) => void;
     onChange: (
         id: string,
-        field: keyof LanguagePairDTO,
-        value: string,
+        field: keyof LanguageFormState,
+        value: string | number | null,
     ) => void;
-    onCurrencyChange: (id: string, value: string) => void;
-    fallbackCurrency: string;
+    onCurrencyChange: (id: string, value: number | null) => void;
+    fallbackCurrencyId: number | null;
 }
 
 export function LanguagesSection({
     languages,
+    availableLanguages,
+    availableCurrencies,
     onAdd,
     onRemove,
     onChange,
     onCurrencyChange,
-    fallbackCurrency,
+    fallbackCurrencyId,
 }: LanguagesSectionProps) {
     const isEmpty = languages.length === 0;
 
@@ -115,17 +115,21 @@ export function LanguagesSection({
                             spacing={2}
                         >
                             <Autocomplete
-                                options={[...LANGUAGE_OPTIONS]}
-                                freeSolo
-                                value={language.language_from ?? ""}
-                                onInputChange={(_event, value) =>
-                                    onChange(language.id, "language_from", value)
+                                options={availableLanguages}
+                                getOptionLabel={(option) => option.name}
+                                value={
+                                    availableLanguages.find(
+                                        (lang) => lang.id === language.language_from_id,
+                                    ) ?? null
+                                }
+                                onChange={(_event, value) =>
+                                    onChange(language.id, "language_from_id", value?.id ?? null)
                                 }
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         label="Исходный язык"
-                                        placeholder="Например: EN"
+                                        placeholder="Выберите язык"
                                         required
                                         fullWidth
                                     />
@@ -133,17 +137,21 @@ export function LanguagesSection({
                                 fullWidth
                             />
                             <Autocomplete
-                                options={[...LANGUAGE_OPTIONS]}
-                                freeSolo
-                                value={language.language_to ?? ""}
-                                onInputChange={(_event, value) =>
-                                    onChange(language.id, "language_to", value)
+                                options={availableLanguages}
+                                getOptionLabel={(option) => option.name}
+                                value={
+                                    availableLanguages.find(
+                                        (lang) => lang.id === language.language_to_id,
+                                    ) ?? null
+                                }
+                                onChange={(_event, value) =>
+                                    onChange(language.id, "language_to_id", value?.id ?? null)
                                 }
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         label="Язык перевода"
-                                        placeholder="Например: RU"
+                                        placeholder="Выберите язык"
                                         required
                                         fullWidth
                                     />
@@ -188,18 +196,18 @@ export function LanguagesSection({
                             <TextField
                                 label="Валюта"
                                 select
-                                value={language.currency ?? fallbackCurrency}
+                                value={language.currency_id ?? fallbackCurrencyId ?? ""}
                                 onChange={(event) =>
                                     onCurrencyChange(
                                         language.id,
-                                        event.target.value,
+                                        event.target.value === "" ? null : Number(event.target.value),
                                     )
                                 }
                                 fullWidth
                             >
-                                {CURRENCY_OPTIONS.map((option) => (
-                                    <MenuItem key={option} value={option}>
-                                        {option}
+                                {availableCurrencies.map((currency) => (
+                                    <MenuItem key={currency.id} value={currency.id}>
+                                        {currency.code} ({currency.name})
                                     </MenuItem>
                                 ))}
                             </TextField>

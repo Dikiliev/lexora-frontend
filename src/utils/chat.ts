@@ -86,11 +86,11 @@ export interface ChatOrderDTO {
     translator_id: number;
     title: string;
     description: string;
-    source_lang: string;
-    target_lang: string;
+    source_lang: { id: number; code: string; name: string; native_name?: string } | string;
+    target_lang: { id: number; code: string; name: string; native_name?: string } | string;
     volume: string;
     price: string;
-    currency: string;
+    currency: { id: number; code: string; name: string; symbol?: string } | string | null;
     deadline: string | null;
     status: ChatOrderStatus;
     is_paid: boolean;
@@ -106,11 +106,11 @@ export interface ChatOrderDTO {
 export interface CreateChatOrderPayload {
     title: string;
     description: string;
-    source_lang: string;
-    target_lang: string;
+    source_lang: number;
+    target_lang: number;
     volume?: string;
     price: number;
-    currency: string;
+    currency?: number | null;
     deadline?: string | null;
 }
 
@@ -118,7 +118,7 @@ export interface RequestOrderChangePayload {
     description?: string;
     volume?: string;
     price?: number;
-    currency?: string;
+    currency?: number | null;
     deadline?: string | null;
 }
 

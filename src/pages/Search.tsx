@@ -23,7 +23,7 @@ import { useSearchParams } from "react-router-dom";
 import SearchFilters from "../components/SearchFilters";
 import TranslatorCard from "../components/TranslatorCard";
 import { useTranslatorSearch, type TranslatorSearchFilters } from "./search/useTranslatorSearch";
-import type { SpecializationOption } from "./translator-settings/types";
+import type { Language, SpecializationOption } from "./translator-settings/types";
 import { request } from "../utils/api";
 
 const PAGE_SIZE = 12;
@@ -65,7 +65,7 @@ export default function Search() {
     const [specializationsLoading, setSpecializationsLoading] = useState(true);
     const [pendingSpecializationKey, setPendingSpecializationKey] = useState<string | null>(null);
 
-    const [languageOptions, setLanguageOptions] = useState<string[]>([]);
+    const [languageOptions, setLanguageOptions] = useState<Language[]>([]);
 
     // Считаем активные фильтры
     const activeFiltersCount = useMemo(() => {
@@ -89,8 +89,8 @@ export default function Search() {
         const pageParam = parseNumber(searchParams.get("page"));
 
         setFilters({
-            languageFrom: from || null,
-            languageTo: to || null,
+            languageFrom: from && !Number.isNaN(Number(from)) ? Number(from) : null,
+            languageTo: to && !Number.isNaN(Number(to)) ? Number(to) : null,
             specializationId: specParam && !Number.isNaN(Number(specParam)) ? Number(specParam) : null,
             maxRate,
             minRating,
@@ -146,28 +146,37 @@ export default function Search() {
         };
     }, [pendingSpecializationKey]);
 
-    const { items, total, languages, isLoading, error } = useTranslatorSearch({
+    const { items, total, isLoading, error } = useTranslatorSearch({
         page,
         pageSize: PAGE_SIZE,
         sort,
         filters,
     });
 
-    // Накопление языков из выдачи
+    // Загрузка языков
     useEffect(() => {
-        if (!languages.length) return;
-        setLanguageOptions((prev) => {
-            const merged = new Set(prev);
-            languages.forEach((lang) => merged.add(lang));
-            return Array.from(merged).sort();
-        });
-    }, [languages]);
+        let isMounted = true;
+        request<{ results?: Language[] } | Language[]>("/languages/")
+            .then((response) => {
+                if (!isMounted) return;
+                const list = Array.isArray(response) ? response : response.results ?? [];
+                setLanguageOptions(list);
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setLanguageOptions([]);
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     // Синк URL со стейтом
     useEffect(() => {
         const params = new URLSearchParams();
-        if (filters.languageFrom) params.set("from", filters.languageFrom);
-        if (filters.languageTo) params.set("to", filters.languageTo);
+        if (filters.languageFrom) params.set("from", String(filters.languageFrom));
+        if (filters.languageTo) params.set("to", String(filters.languageTo));
         if (filters.specializationId) params.set("spec", String(filters.specializationId));
         if (filters.maxRate != null) params.set("maxRate", String(filters.maxRate));
         if (filters.minRating != null) params.set("minRating", String(filters.minRating));

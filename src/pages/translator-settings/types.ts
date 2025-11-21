@@ -1,9 +1,24 @@
+export interface Language {
+    id: number;
+    code: string;
+    name: string;
+    native_name?: string;
+}
+
+export interface Currency {
+    id: number;
+    code: string;
+    name: string;
+    symbol?: string;
+}
+
 export interface LanguagePairDTO {
-    language_from: string;
-    language_to: string;
+    id?: number;
+    language_from: Language;
+    language_to: Language;
     price_per_word?: number | null;
     price_per_hour?: number | null;
-    currency?: string | null;
+    currency: Currency;
 }
 
 export interface SpecializationOption {
@@ -14,7 +29,7 @@ export interface SpecializationOption {
 
 export interface SpecializationWithMeta extends SpecializationOption {
     rate?: number | null;
-    currency?: string | null;
+    currency?: Currency | null;
     note?: string | null;
 }
 
@@ -32,9 +47,9 @@ export interface TranslatorProfileDTO {
     experience_years: number;
     education: string;
     hourly_rate: string;
-    currency: string;
+    currency: Currency | null;
     bio: string;
-    langs: LanguagePairDTO[];
+    language_pairs: LanguagePairDTO[];
     specializations: SpecializationWithMeta[];
     portfolio_items: PortfolioItemDTO[];
     avg_rating_cached: string | number | null;
@@ -43,13 +58,18 @@ export interface TranslatorProfileDTO {
     push_enabled: boolean;
 }
 
-export interface LanguageFormState extends LanguagePairDTO {
+export interface LanguageFormState {
     id: string;
+    language_from_id: number | null;
+    language_to_id: number | null;
+    price_per_word: number | null;
+    price_per_hour: number | null;
+    currency_id: number | null;
 }
 
 export interface SpecializationMetaState {
     rate?: string;
-    currency?: string;
+    currency_id?: number | null;
     note?: string;
 }
 

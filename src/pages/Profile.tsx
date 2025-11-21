@@ -57,7 +57,7 @@ export default function Profile() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, isChatOpen]);
 
-    const languages = profile?.langs ?? [];
+    const languages = profile?.language_pairs ?? [];
     const specializations = profile?.specializations ?? [];
     const portfolioItems = profile?.portfolio_items ?? [];
 
@@ -83,7 +83,7 @@ export default function Profile() {
     }, [profile]);
 
     const ratingValue = Number(profile?.avg_rating_cached ?? 0) || 0;
-    const hourlyRateLabel = profile ? formatHourly(profile.hourly_rate, profile.currency) : "—";
+    const hourlyRateLabel = profile ? formatHourly(profile.hourly_rate, profile.currency?.code ?? "USD") : "—";
     const initials = getInitials(profile?.full_name);
     const isOwnProfile =
         user?.role === "translator" &&
@@ -176,7 +176,7 @@ export default function Profile() {
 
                 <LanguagesSection
                     languages={languages}
-                    currency={profile.currency}
+                    currency={profile.currency?.code ?? "USD"}
                     formatLanguagePair={formatLanguagePair}
                 />
 

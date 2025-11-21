@@ -1,21 +1,23 @@
 import { Autocomplete, Paper, Stack, TextField, Typography, MenuItem } from "@mui/material";
-import { CURRENCY_OPTIONS, SPECIALIZATIONS_EMPTY_NOTE } from "../constants";
-import type { SpecializationMetaMap, SpecializationOption } from "../types";
+import { SPECIALIZATIONS_EMPTY_NOTE } from "../constants";
+import type { Currency, SpecializationMetaMap, SpecializationOption } from "../types";
 
 interface SpecializationsSectionProps {
     options: SpecializationOption[];
     selected: SpecializationOption[];
     meta: SpecializationMetaMap;
-    fallbackCurrency: string;
+    availableCurrencies: Currency[];
+    fallbackCurrencyId: number | null;
     onSelectionChange: (items: SpecializationOption[]) => void;
-    onMetaChange: (id: number, field: "rate" | "currency" | "note", value: string) => void;
+    onMetaChange: (id: number, field: "rate" | "currency_id" | "note", value: string | number | null) => void;
 }
 
 export function SpecializationsSection({
     options,
     selected,
     meta,
-    fallbackCurrency,
+    availableCurrencies,
+    fallbackCurrencyId,
     onSelectionChange,
     onMetaChange,
 }: SpecializationsSectionProps) {
@@ -91,21 +93,22 @@ export function SpecializationsSection({
                                 label="Валюта"
                                 select
                                 value={
-                                    meta[spec.id]?.currency ??
-                                    fallbackCurrency
+                                    meta[spec.id]?.currency_id ??
+                                    fallbackCurrencyId ??
+                                    ""
                                 }
                                 onChange={(event) =>
                                     onMetaChange(
                                         spec.id,
-                                        "currency",
-                                        event.target.value,
+                                        "currency_id",
+                                        event.target.value === "" ? null : Number(event.target.value),
                                     )
                                 }
                                 fullWidth
                             >
-                                {CURRENCY_OPTIONS.map((option) => (
-                                    <MenuItem key={option} value={option}>
-                                        {option}
+                                {availableCurrencies.map((currency) => (
+                                    <MenuItem key={currency.id} value={currency.id}>
+                                        {currency.code} ({currency.name})
                                     </MenuItem>
                                 ))}
                             </TextField>

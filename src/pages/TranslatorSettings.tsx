@@ -13,8 +13,13 @@ import { SpecializationsSection } from "./translator-settings/components/Special
 import { NotificationsSection } from "./translator-settings/components/NotificationsSection";
 import { Feedback } from "./translator-settings/components/Feedback";
 import { useTranslatorSettingsForm } from "./translator-settings/useTranslatorSettingsForm";
+import { useLanguages } from "../hooks/useLanguages";
+import { useCurrencies } from "../hooks/useCurrencies";
 
 export default function TranslatorSettings() {
+    const { languages: availableLanguages } = useLanguages();
+    const { currencies: availableCurrencies } = useCurrencies();
+    
     const {
         state: {
             profile,
@@ -105,6 +110,7 @@ export default function TranslatorSettings() {
                 {/* Базовая информация */}
                 <BasicsSection
                     profile={profile}
+                    availableCurrencies={availableCurrencies}
                     onFieldChange={updateProfileField}
                 />
 
@@ -119,11 +125,13 @@ export default function TranslatorSettings() {
                 {/* Языковые пары */}
                 <LanguagesSection
                     languages={languages}
+                    availableLanguages={availableLanguages}
+                    availableCurrencies={availableCurrencies}
                     onAdd={addLanguage}
                     onRemove={removeLanguage}
                     onChange={updateLanguage}
                     onCurrencyChange={updateLanguageCurrency}
-                    fallbackCurrency={profile.currency}
+                    fallbackCurrencyId={profile.currency?.id ?? null}
                 />
 
                 <Divider />
@@ -133,7 +141,8 @@ export default function TranslatorSettings() {
                     options={specializations}
                     selected={selectedSpecs}
                     meta={specMeta}
-                    fallbackCurrency={profile.currency}
+                    availableCurrencies={availableCurrencies}
+                    fallbackCurrencyId={profile.currency?.id ?? null}
                     onSelectionChange={updateSpecializations}
                     onMetaChange={updateSpecMeta}
                 />

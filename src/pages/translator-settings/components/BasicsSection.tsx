@@ -1,14 +1,15 @@
 import { Stack, TextField, Typography, MenuItem } from "@mui/material";
-import type { TranslatorProfileDTO } from "../types";
-import { CURRENCY_OPTIONS } from "../constants";
+import type { Currency, TranslatorProfileDTO } from "../types";
 
 interface BasicsSectionProps {
     profile: TranslatorProfileDTO;
+    availableCurrencies: Currency[];
     onFieldChange: <K extends keyof TranslatorProfileDTO>(field: K, value: TranslatorProfileDTO[K]) => void;
 }
 
 export function BasicsSection({
     profile,
+    availableCurrencies,
     onFieldChange,
 }: BasicsSectionProps) {
     return (
@@ -73,15 +74,18 @@ export function BasicsSection({
                 <TextField
                     label="Валюта"
                     select
-                    value={profile.currency}
-                    onChange={(event) =>
-                        onFieldChange("currency", event.target.value)
-                    }
+                    value={profile.currency?.id ?? ""}
+                    onChange={(event) => {
+                        const currency = availableCurrencies.find(
+                            (c) => c.id === Number(event.target.value),
+                        );
+                        onFieldChange("currency", currency ?? null);
+                    }}
                     fullWidth
                 >
-                    {CURRENCY_OPTIONS.map((option) => (
-                        <MenuItem key={option} value={option}>
-                            {option}
+                    {availableCurrencies.map((currency) => (
+                        <MenuItem key={currency.id} value={currency.id}>
+                            {currency.code} ({currency.name})
                         </MenuItem>
                     ))}
                 </TextField>

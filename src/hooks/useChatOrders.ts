@@ -35,11 +35,11 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
     const [orderForm, setOrderForm] = useState<OrderFormState>({
         title: "",
         description: "",
-        source_lang: "",
-        target_lang: "",
+        source_lang_id: null,
+        target_lang_id: null,
         volume: "",
         price: "",
-        currency: "RUB",
+        currency_id: null,
         deadline: "",
     });
     const [orderFormError, setOrderFormError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
         description: "",
         volume: "",
         price: "",
-        currency: "",
+        currency_id: null,
         deadline: "",
     });
     const [activeOrderAction, setActiveOrderAction] = useState<Record<number, ChatOrderAction | "upload" | null>>({});
@@ -99,20 +99,25 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
             setOrderForm({
                 title: "",
                 description: "",
-                source_lang: "",
-                target_lang: "",
+                source_lang_id: null,
+                target_lang_id: null,
                 volume: "",
                 price: "",
-                currency: "RUB",
+                currency_id: null,
                 deadline: "",
             }),
         [],
     );
 
     const handleOrderFormChange = useCallback(
-        (field: keyof OrderFormState) => (event: ChangeEvent<HTMLInputElement>) => {
+        (field: keyof OrderFormState) => (event: ChangeEvent<HTMLInputElement> | { target: { value: number | null | string } }) => {
             const { value } = event.target;
-            setOrderForm((prev: OrderFormState) => ({ ...prev, [field]: value }));
+            setOrderForm((prev: OrderFormState) => {
+                if (field === "source_lang_id" || field === "target_lang_id" || field === "currency_id") {
+                    return { ...prev, [field]: value === "" || value === null ? null : Number(value) };
+                }
+                return { ...prev, [field]: value };
+            });
         },
         [],
     );
@@ -123,14 +128,19 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
             if (!selectedThreadId) return;
             setOrderFormError(null);
             try {
+                if (!orderForm.source_lang_id || !orderForm.target_lang_id) {
+                    setOrderFormError("Необходимо выбрать языковую пару");
+                    return;
+                }
+
                 const payload: CreateChatOrderPayload = {
                     title: orderForm.title.trim(),
                     description: orderForm.description.trim(),
-                    source_lang: orderForm.source_lang.trim(),
-                    target_lang: orderForm.target_lang.trim(),
+                    source_lang: orderForm.source_lang_id,
+                    target_lang: orderForm.target_lang_id,
                     volume: orderForm.volume.trim(),
                     price: Number(orderForm.price),
-                    currency: orderForm.currency || "RUB",
+                    currency: orderForm.currency_id ?? undefined,
                     deadline: orderForm.deadline ? new Date(orderForm.deadline).toISOString() : null,
                 };
                 const created = await createThreadOrder(selectedThreadId, payload);
@@ -152,7 +162,7 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
                     description: order.description,
                     volume: order.volume ?? "",
                     price: order.price,
-                    currency: order.currency,
+                    currency_id: typeof order.currency === "object" && order.currency ? order.currency.id : null,
                     deadline: order.deadline ? new Date(order.deadline).toISOString().slice(0, 16) : "",
                 });
                 setRequestChangeOpen(true);
@@ -201,16 +211,21 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
             description: order.description,
             volume: order.volume ?? "",
             price: order.price,
-            currency: order.currency,
+            currency_id: typeof order.currency === "object" && order.currency ? order.currency.id : null,
             deadline: order.deadline ? new Date(order.deadline).toISOString().slice(0, 16) : "",
         });
         setRequestChangeOpen(true);
     }, []);
 
     const handleRequestChangeField = useCallback(
-        (field: keyof RequestChangeFormState) => (event: ChangeEvent<HTMLInputElement>) => {
+        (field: keyof RequestChangeFormState) => (event: ChangeEvent<HTMLInputElement> | { target: { value: number | null | string } }) => {
             const { value } = event.target;
-            setRequestChangeForm((prev: RequestChangeFormState) => ({ ...prev, [field]: value }));
+            setRequestChangeForm((prev: RequestChangeFormState) => {
+                if (field === "currency_id") {
+                    return { ...prev, [field]: value === "" || value === null ? null : Number(value) };
+                }
+                return { ...prev, [field]: value };
+            });
         },
         [],
     );
@@ -226,7 +241,9 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
                 if (requestChangeForm.description) payload.description = requestChangeForm.description;
                 if (requestChangeForm.volume) payload.volume = requestChangeForm.volume;
                 if (requestChangeForm.price) payload.price = Number(requestChangeForm.price);
-                if (requestChangeForm.currency) payload.currency = requestChangeForm.currency;
+                if (requestChangeForm.currency_id !== null && requestChangeForm.currency_id !== undefined) {
+                    payload.currency = requestChangeForm.currency_id;
+                }
                 if (requestChangeForm.deadline) {
                     payload.deadline = new Date(requestChangeForm.deadline).toISOString();
                 }
@@ -238,7 +255,7 @@ export function useChatOrders({ selectedThreadId, onError }: UseChatOrdersOption
                     description: "",
                     volume: "",
                     price: "",
-                    currency: "",
+                    currency_id: null,
                     deadline: "",
                 });
             } catch (error) {

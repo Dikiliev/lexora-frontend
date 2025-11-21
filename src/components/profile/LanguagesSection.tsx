@@ -1,10 +1,10 @@
 import { Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
-import type { LanguagePairDTO } from "../../pages/translator-settings/types";
+import type { Currency, LanguagePairDTO } from "../../pages/translator-settings/types";
 
 interface LanguagesSectionProps {
     languages: LanguagePairDTO[];
-    currency: string;
-    formatLanguagePair: (pair: LanguagePairDTO, currency: string) => {
+    currency: Currency | null;
+    formatLanguagePair: (pair: LanguagePairDTO, currency: Currency | null) => {
         pricePerWord: string;
         pricePerHour: string;
     };
@@ -41,7 +41,7 @@ export function LanguagesSection({
                                     key={`${pair.language_from}-${pair.language_to}-${index}`}
                                 >
                                     <TableCell>
-                                        {pair.language_from ?? "—"} → {pair.language_to ?? "—"}
+                                        {pair.language_from?.name ?? "—"} → {pair.language_to?.name ?? "—"}
                                     </TableCell>
                                     <TableCell>{pricePerWord}</TableCell>
                                     <TableCell>{pricePerHour}</TableCell>

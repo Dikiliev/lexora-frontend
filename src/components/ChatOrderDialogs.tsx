@@ -14,15 +14,20 @@ import {
     Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { Autocomplete } from "@mui/material";
+import { useCurrencies } from "../hooks/useCurrencies";
+import { useLanguages } from "../hooks/useLanguages";
+
+import type { Currency, Language } from "../pages/translator-settings/types";
 
 export interface OrderFormState {
     title: string;
     description: string;
-    source_lang: string;
-    target_lang: string;
+    source_lang_id: number | null;
+    target_lang_id: number | null;
     volume: string;
     price: string;
-    currency: string;
+    currency_id: number | null;
     deadline: string;
 }
 
@@ -30,7 +35,7 @@ export interface RequestChangeFormState {
     description: string;
     volume: string;
     price: string;
-    currency: string;
+    currency_id: number | null;
     deadline: string;
 }
 
@@ -42,7 +47,7 @@ interface CreateDialogProps {
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     onChange: (
         field: keyof OrderFormState,
-    ) => (event: ChangeEvent<HTMLInputElement>) => void;
+    ) => (event: ChangeEvent<HTMLInputElement> | { target: { value: number | null } }) => void;
 }
 
 interface RequestChangeDialogProps {
@@ -62,13 +67,13 @@ interface ChatOrderDialogsProps {
     requestChangeDialog: RequestChangeDialogProps;
 }
 
-const CURRENCIES = ["RUB", "USD", "EUR"];
-
 export function ChatOrderDialogs({
     isClient,
     createDialog,
     requestChangeDialog,
 }: ChatOrderDialogsProps) {
+    const { languages } = useLanguages();
+    const { currencies } = useCurrencies();
     return (
         <>
             {/* Диалог создания заказа (только для клиента) */}
@@ -143,22 +148,54 @@ export function ChatOrderDialogs({
                                     direction={{ xs: "column", sm: "row" }}
                                     spacing={2}
                                 >
-                                    <TextField
-                                        label="Язык исходный"
-                                        value={createDialog.form.source_lang}
-                                        onChange={createDialog.onChange(
-                                            "source_lang",
+                                    <Autocomplete
+                                        options={languages}
+                                        getOptionLabel={(option) => option.name}
+                                        value={
+                                            languages.find(
+                                                (lang) => lang.id === createDialog.form.source_lang_id,
+                                            ) ?? null
+                                        }
+                                        onChange={(_event, value) => {
+                                            const event = {
+                                                target: { value: value?.id ?? null },
+                                            } as ChangeEvent<HTMLInputElement>;
+                                            createDialog.onChange("source_lang_id")(event);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Язык исходный"
+                                                placeholder="Выберите язык"
+                                                required
+                                                fullWidth
+                                            />
                                         )}
-                                        required
                                         fullWidth
                                     />
-                                    <TextField
-                                        label="Язык перевода"
-                                        value={createDialog.form.target_lang}
-                                        onChange={createDialog.onChange(
-                                            "target_lang",
+                                    <Autocomplete
+                                        options={languages}
+                                        getOptionLabel={(option) => option.name}
+                                        value={
+                                            languages.find(
+                                                (lang) => lang.id === createDialog.form.target_lang_id,
+                                            ) ?? null
+                                        }
+                                        onChange={(_event, value) => {
+                                            const event = {
+                                                target: { value: value?.id ?? null },
+                                            } as ChangeEvent<HTMLInputElement>;
+                                            createDialog.onChange("target_lang_id")(event);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Язык перевода"
+                                                placeholder="Выберите язык"
+                                                required
+                                                fullWidth
+                                            />
                                         )}
-                                        required
                                         fullWidth
                                     />
                                 </Stack>
@@ -191,18 +228,22 @@ export function ChatOrderDialogs({
                                     <TextField
                                         label="Валюта"
                                         select
-                                        value={createDialog.form.currency}
-                                        onChange={createDialog.onChange(
-                                            "currency",
-                                        )}
+                                        value={createDialog.form.currency_id ?? ""}
+                                        onChange={(event) => {
+                                            const value = event.target.value === "" ? null : Number(event.target.value);
+                                            const changeEvent = {
+                                                target: { value },
+                                            } as ChangeEvent<HTMLInputElement>;
+                                            createDialog.onChange("currency_id")(changeEvent);
+                                        }}
                                         fullWidth
                                     >
-                                        {CURRENCIES.map((currency) => (
+                                        {currencies.map((currency) => (
                                             <MenuItem
-                                                key={currency}
-                                                value={currency}
+                                                key={currency.id}
+                                                value={currency.id}
                                             >
-                                                {currency}
+                                                {currency.code} ({currency.name})
                                             </MenuItem>
                                         ))}
                                     </TextField>
@@ -316,18 +357,22 @@ export function ChatOrderDialogs({
                                 <TextField
                                     label="Валюта"
                                     select
-                                    value={requestChangeDialog.form.currency}
-                                    onChange={requestChangeDialog.onChange(
-                                        "currency",
-                                    )}
+                                    value={requestChangeDialog.form.currency_id ?? ""}
+                                    onChange={(event) => {
+                                        const value = event.target.value === "" ? null : Number(event.target.value);
+                                        const changeEvent = {
+                                            target: { value },
+                                        } as ChangeEvent<HTMLInputElement>;
+                                        requestChangeDialog.onChange("currency_id")(changeEvent);
+                                    }}
                                     fullWidth
                                 >
-                                    {CURRENCIES.map((currency) => (
+                                    {currencies.map((currency) => (
                                         <MenuItem
-                                            key={currency}
-                                            value={currency}
+                                            key={currency.id}
+                                            value={currency.id}
                                         >
-                                            {currency}
+                                            {currency.code} ({currency.name})
                                         </MenuItem>
                                     ))}
                                 </TextField>

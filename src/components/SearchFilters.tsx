@@ -7,7 +7,7 @@ import {
     Typography,
     Rating,
 } from "@mui/material";
-import type { SpecializationOption } from "../pages/translator-settings/types";
+import type { Language, SpecializationOption } from "../pages/translator-settings/types";
 import type { TranslatorSearchFilters } from "../pages/search/useTranslatorSearch";
 
 interface SearchFiltersProps {
@@ -15,14 +15,8 @@ interface SearchFiltersProps {
     onFiltersChange: (patch: Partial<TranslatorSearchFilters>) => void;
     onReset: () => void;
     specializationOptions: SpecializationOption[];
-    languageOptions: string[];
+    languageOptions: Language[];
     isLoading?: boolean;
-}
-
-function normalizeLanguage(value: string | null): string | null {
-    if (!value) return null;
-    const trimmed = value.trim();
-    return trimmed.length === 0 ? null : trimmed;
 }
 
 const RATING_OPTIONS: Array<{ value: number | null; label: string }> = [
@@ -43,14 +37,8 @@ const SearchFilters = ({
 }: SearchFiltersProps) => {
     const handleLanguageChange =
         (key: "languageFrom" | "languageTo") =>
-        (_: unknown, value: string | null) => {
-            onFiltersChange({ [key]: normalizeLanguage(value) });
-        };
-
-    const handleLanguageInputChange =
-        (key: "languageFrom" | "languageTo") =>
-        (_: unknown, value: string) => {
-            onFiltersChange({ [key]: normalizeLanguage(value) });
+        (_: unknown, value: Language | null) => {
+            onFiltersChange({ [key]: value?.id ?? null });
         };
 
     const specializationValue = filters.specializationId ?? "";
@@ -65,36 +53,34 @@ const SearchFilters = ({
                 </Typography>
 
                 <Autocomplete
-                    freeSolo
                     options={languageOptions}
-                    value={filters.languageFrom ?? ""}
+                    getOptionLabel={(option) => option.name}
+                    value={languageOptions.find((lang) => lang.id === filters.languageFrom) ?? null}
                     onChange={handleLanguageChange("languageFrom")}
-                    onInputChange={handleLanguageInputChange("languageFrom")}
                     loading={isLoading}
                     size="small"
                     renderInput={(params) => (
                         <TextField
                             {...params}
                             label="С языка"
-                            placeholder="Например: en"
+                            placeholder="Выберите язык"
                             size="small"
                         />
                     )}
                 />
 
                 <Autocomplete
-                    freeSolo
                     options={languageOptions}
-                    value={filters.languageTo ?? ""}
+                    getOptionLabel={(option) => option.name}
+                    value={languageOptions.find((lang) => lang.id === filters.languageTo) ?? null}
                     onChange={handleLanguageChange("languageTo")}
-                    onInputChange={handleLanguageInputChange("languageTo")}
                     loading={isLoading}
                     size="small"
                     renderInput={(params) => (
                         <TextField
                             {...params}
                             label="На язык"
-                            placeholder="Например: ru"
+                            placeholder="Выберите язык"
                             size="small"
                         />
                     )}

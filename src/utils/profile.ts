@@ -1,4 +1,4 @@
-import type { LanguagePairDTO } from "../pages/translator-settings/types";
+import type { Currency, LanguagePairDTO } from "../pages/translator-settings/types";
 
 export function parseNumber(value: string | number | null | undefined): number | null {
     if (value === null || value === undefined || value === "") return null;
@@ -6,24 +6,25 @@ export function parseNumber(value: string | number | null | undefined): number |
     return Number.isNaN(numeric) ? null : numeric;
 }
 
-export function formatMoney(value: string | number | null | undefined, currency: string): string {
+export function formatMoney(value: string | number | null | undefined, currency: Currency | string | null): string {
     const numeric = parseNumber(value);
     if (numeric === null) return "—";
+    const currencyCode = typeof currency === "string" ? currency : currency?.code ?? "USD";
     try {
-        return new Intl.NumberFormat("ru-RU", { style: "currency", currency }).format(numeric);
+        return new Intl.NumberFormat("ru-RU", { style: "currency", currency: currencyCode }).format(numeric);
     } catch {
-        return `${numeric.toLocaleString("ru-RU")} ${currency}`;
+        return `${numeric.toLocaleString("ru-RU")} ${currencyCode}`;
     }
 }
 
-export function formatHourly(value: string | number | null | undefined, currency: string): string {
+export function formatHourly(value: string | number | null | undefined, currency: Currency | string | null): string {
     const formatted = formatMoney(value, currency);
     return formatted === "—" ? formatted : `${formatted}/ч`;
 }
 
 export function formatLanguagePair(
     pair: LanguagePairDTO,
-    fallbackCurrency: string,
+    fallbackCurrency: Currency | null,
 ): { pricePerWord: string; pricePerHour: string } {
     const pricePerWord = formatMoney(pair.price_per_word, pair.currency ?? fallbackCurrency);
     const pricePerHour = formatHourly(pair.price_per_hour, pair.currency ?? fallbackCurrency);

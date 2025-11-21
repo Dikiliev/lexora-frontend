@@ -17,19 +17,20 @@ interface TranslatorCardProps {
     translator: TranslatorListItem;
 }
 
-function formatRate(value: number | null, currency: string): string {
+function formatRate(value: number | null, currency: string | { code: string } | null): string {
     if (value === null) return "по запросу";
+    const currencyCode = typeof currency === "string" ? currency : currency?.code ?? "USD";
 
     try {
         const formatted = new Intl.NumberFormat("ru-RU", {
             style: "currency",
-            currency,
+            currency: currencyCode,
             maximumFractionDigits: 0,
         }).format(value);
         return `${formatted}/ч`;
     } catch {
         const fallback = new Intl.NumberFormat("ru-RU").format(value);
-        return `${fallback} ${currency}/ч`;
+        return `${fallback} ${currencyCode}/ч`;
     }
 }
 
@@ -38,7 +39,7 @@ function getLanguagePairs(languages: TranslatorListItem["languages"]): string[] 
     return languages
         .map((pair) => {
             if (!pair.language_from && !pair.language_to) return null;
-            return `${pair.language_from ?? "—"} → ${pair.language_to ?? "—"}`;
+            return `${pair.language_from?.name ?? "—"} → ${pair.language_to?.name ?? "—"}`;
         })
         .filter((x): x is string => Boolean(x));
 }

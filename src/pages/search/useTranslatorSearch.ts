@@ -20,8 +20,8 @@ export interface TranslatorListItem {
 }
 
 export interface TranslatorSearchFilters {
-    languageFrom: string | null;
-    languageTo: string | null;
+    languageFrom: number | null;
+    languageTo: number | null;
     specializationId: number | null;
     maxRate: number | null;
     minRating: number | null;
@@ -37,7 +37,6 @@ export interface UseTranslatorSearchArgs {
 interface UseTranslatorSearchState {
     items: TranslatorListItem[];
     total: number;
-    languages: string[];
     isLoading: boolean;
     error: string | null;
 }
@@ -62,10 +61,10 @@ function normalizeTranslator(item: TranslatorProfileDTO): TranslatorListItem {
         fullName: item.full_name || "Без имени",
         experienceYears: item.experience_years,
         hourlyRate: toNumber(item.hourly_rate),
-        currency: item.currency,
+        currency: item.currency?.code ?? "USD",
         rating: toNumber(item.avg_rating_cached),
         completedOrders: item.completed_orders_count,
-        languages: item.langs ?? [],
+        languages: item.language_pairs ?? [],
         specializations: item.specializations ?? [],
     };
 }
@@ -74,7 +73,6 @@ export function useTranslatorSearch({ page, pageSize, sort, filters }: UseTransl
     const [state, setState] = useState<UseTranslatorSearchState>({
         items: [],
         total: 0,
-        languages: [],
         isLoading: true,
         error: null,
     });
@@ -91,8 +89,8 @@ export function useTranslatorSearch({ page, pageSize, sort, filters }: UseTransl
         params.set("limit", String(pageSize));
         params.set("offset", String(offset));
 
-        if (filters.languageFrom) params.set("language_from", filters.languageFrom);
-        if (filters.languageTo) params.set("language_to", filters.languageTo);
+        if (filters.languageFrom) params.set("language_from", String(filters.languageFrom));
+        if (filters.languageTo) params.set("language_to", String(filters.languageTo));
         if (filters.specializationId) params.set("specialization", String(filters.specializationId));
         if (filters.maxRate != null) params.set("max_rate", String(filters.maxRate));
         if (filters.minRating != null) params.set("min_rating", String(filters.minRating));
@@ -117,18 +115,10 @@ export function useTranslatorSearch({ page, pageSize, sort, filters }: UseTransl
         request<PaginatedResponse<TranslatorProfileDTO>>(`/translators/?${query}`, { signal: controller.signal })
             .then((response) => {
                 const items = response.results.map(normalizeTranslator);
-                const languageSet = new Set<string>();
-                items.forEach((translator) => {
-                    translator.languages.forEach((pair) => {
-                        if (pair.language_from) languageSet.add(pair.language_from);
-                        if (pair.language_to) languageSet.add(pair.language_to);
-                    });
-                });
 
                 setState({
                     items,
                     total: response.count,
-                    languages: Array.from(languageSet).sort(),
                     isLoading: false,
                     error: null,
                 });
@@ -141,7 +131,6 @@ export function useTranslatorSearch({ page, pageSize, sort, filters }: UseTransl
                     error: error instanceof Error ? error.message : "Не удалось загрузить переводчиков",
                     items: [],
                     total: 0,
-                    languages: [],
                 }));
             });
 
