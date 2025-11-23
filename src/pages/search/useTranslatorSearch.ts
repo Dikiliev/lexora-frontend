@@ -25,6 +25,7 @@ export interface TranslatorSearchFilters {
     specializationId: number | null;
     maxRate: number | null;
     minRating: number | null;
+    search: string | null;
 }
 
 export interface UseTranslatorSearchArgs {
@@ -95,6 +96,11 @@ export function useTranslatorSearch({ page, pageSize, sort, filters }: UseTransl
         if (filters.maxRate != null) params.set("max_rate", String(filters.maxRate));
         if (filters.minRating != null) params.set("min_rating", String(filters.minRating));
         if (ordering) params.set("ordering", ordering);
+        
+        // Поиск по имени/фамилии
+        if (filters.search && filters.search.trim()) {
+            params.set("search", filters.search.trim());
+        }
 
         return params.toString();
     }, [
@@ -103,6 +109,7 @@ export function useTranslatorSearch({ page, pageSize, sort, filters }: UseTransl
         filters.specializationId,
         filters.maxRate,
         filters.minRating,
+        filters.search,
         ordering,
         offset,
         pageSize,

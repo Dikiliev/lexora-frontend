@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { useSearchParams } from "react-router-dom";
 
 import SearchFilters from "../components/SearchFilters";
@@ -44,6 +45,7 @@ const DEFAULT_FILTERS: TranslatorSearchFilters = {
     specializationId: null,
     maxRate: null,
     minRating: null,
+    search: null,
 };
 
 function parseNumber(value: string | null): number | null {
@@ -57,6 +59,7 @@ export default function Search() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [filters, setFilters] = useState<TranslatorSearchFilters>({ ...DEFAULT_FILTERS });
+    const [searchQuery, setSearchQuery] = useState<string>("");
     const [sort, setSort] = useState<SortKey>("relevance");
     const [page, setPage] = useState(1);
     const [isFiltersDrawerOpen, setFiltersDrawerOpen] = useState(false);
@@ -75,6 +78,7 @@ export default function Search() {
         if (filters.specializationId) count++;
         if (filters.maxRate != null) count++;
         if (filters.minRating != null) count++;
+        if (filters.search && filters.search.trim()) count++;
         return count;
     }, [filters]);
 
@@ -87,14 +91,20 @@ export default function Search() {
         const minRating = parseNumber(searchParams.get("minRating"));
         const sortParam = searchParams.get("sort") as SortKey | null;
         const pageParam = parseNumber(searchParams.get("page"));
+        const searchParam = searchParams.get("search");
 
+        const initialSearch = searchParam || "";
+        
         setFilters({
             languageFrom: from && !Number.isNaN(Number(from)) ? Number(from) : null,
             languageTo: to && !Number.isNaN(Number(to)) ? Number(to) : null,
             specializationId: specParam && !Number.isNaN(Number(specParam)) ? Number(specParam) : null,
             maxRate,
             minRating,
+            search: searchParam,
         });
+
+        setSearchQuery(initialSearch);
 
         if (specParam && (Number.isNaN(Number(specParam)) || specParam.trim() === "")) {
             setPendingSpecializationKey(specParam);
@@ -180,6 +190,7 @@ export default function Search() {
         if (filters.specializationId) params.set("spec", String(filters.specializationId));
         if (filters.maxRate != null) params.set("maxRate", String(filters.maxRate));
         if (filters.minRating != null) params.set("minRating", String(filters.minRating));
+        if (filters.search && filters.search.trim()) params.set("search", filters.search.trim());
         if (sort !== "relevance") params.set("sort", sort);
         if (page > 1) params.set("page", String(page));
 
@@ -196,8 +207,39 @@ export default function Search() {
 
     const handleResetFilters = useCallback(() => {
         setFilters({ ...DEFAULT_FILTERS });
+        setSearchQuery("");
         setPage(1);
     }, []);
+
+    const handleSearchChange = useCallback((value: string) => {
+        setSearchQuery(value);
+    }, []);
+
+    const handleSearchSubmit = useCallback((event: React.FormEvent) => {
+        event.preventDefault();
+        const trimmed = searchQuery.trim();
+        // Обновляем фильтры сразу при submit (без ожидания debounce)
+        setFilters((prev) => ({ ...prev, search: trimmed || null }));
+        setPage(1);
+    }, [searchQuery]);
+
+    // Debounce для поиска - обновляем фильтры через 500ms после остановки ввода
+    useEffect(() => {
+        const trimmed = searchQuery.trim();
+        const timer = setTimeout(() => {
+            setFilters((prev) => {
+                const newSearch = trimmed || null;
+                // Обновляем только если значение изменилось
+                if (prev.search !== newSearch) {
+                    return { ...prev, search: newSearch };
+                }
+                return prev;
+            });
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     const handleSortChange = useCallback((value: string) => {
         setSort(value as SortKey);
@@ -304,6 +346,24 @@ export default function Search() {
 
                 {/* Основная колонка */}
                 <Grid size={{ xs: 12, md: 9 }}>
+                    {/* Поиск по имени */}
+                    <Paper
+                        component="form"
+                        onSubmit={handleSearchSubmit}
+                        sx={{ p: 2, mb: 1.5 }}
+                    >
+                        <TextField
+                            fullWidth
+                            size="small"
+                            placeholder="Поиск по имени или фамилии переводчика..."
+                            value={searchQuery}
+                            onChange={(event) => handleSearchChange(event.target.value)}
+                            InputProps={{
+                                startAdornment: <SearchRoundedIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                            }}
+                        />
+                    </Paper>
+
                     {/* Хедер списка */}
                     <Paper sx={{ p: 2, mb: 1.5 }}>
                         <Stack
