@@ -230,6 +230,17 @@ export default function Header() {
                                                     Настройки профиля
                                                 </MenuItem>
                                             )}
+                                            {isClient && (
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        handleCloseMenu();
+                                                        navigate("/client/settings");
+                                                    }}
+                                                >
+                                                    <SettingsRoundedIcon fontSize="small" sx={{ mr: 1.5 }} />
+                                                    Настройки профиля
+                                                </MenuItem>
+                                            )}
                                             <Divider />
                                             <MenuItem onClick={handleLogout}>
                                                 <LogoutRoundedIcon fontSize="small" sx={{ mr: 1.5 }} />
@@ -365,6 +376,18 @@ export default function Header() {
                                                 variant="outlined"
                                                 component={RouterLink}
                                                 to="/translator/settings"
+                                                startIcon={<SettingsRoundedIcon />}
+                                                onClick={() => setOpen(false)}
+                                            >
+                                                Настройки профиля
+                                            </Button>
+                                        )}
+                                        {isClient && (
+                                            <Button
+                                                fullWidth
+                                                variant="outlined"
+                                                component={RouterLink}
+                                                to="/client/settings"
                                                 startIcon={<SettingsRoundedIcon />}
                                                 onClick={() => setOpen(false)}
                                             >

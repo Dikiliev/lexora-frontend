@@ -10,12 +10,14 @@ export interface ChatThreadDTO {
         first_name?: string | null;
         last_name?: string | null;
         full_name?: string | null;
+        avatar?: string | null;
     } | null;
     translator?: {
         id: number;
         user_id: number;
         full_name: string;
         email: string;
+        avatar?: string | null;
     } | null;
     last_message_text?: string | null;
     last_message_created_at?: string | null;
@@ -34,6 +36,7 @@ export interface ChatMessageDTO {
     sender: number;
     sender_first_name?: string | null;
     sender_last_name?: string | null;
+    sender_avatar?: string | null;
     message_type: "text" | "system";
     payload?: Record<string, unknown> | null;
     text: string;

@@ -1,23 +1,46 @@
 import type { MutableRefObject } from "react";
 import {
     Alert,
+    Avatar,
     Box,
     CircularProgress,
+    Link,
     Stack,
     Typography,
 } from "@mui/material";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import DoneIcon from "@mui/icons-material/Done";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { Link as RouterLink } from "react-router-dom";
+import { API_URL } from "../../utils/api";
 
 import type { ChatMessageDTO, ChatOrderDTO } from "../../utils/chat";
 import { formatMessageTime } from "../../utils/chat";
 import { ChatOrderCard, type ChatOrderAction } from "../ChatOrderCard";
 
+// Функция для получения полного URL аватара
+function getAvatarUrl(avatar: string | null | undefined): string | undefined {
+    if (!avatar) return undefined;
+    if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+        return avatar;
+    }
+    const baseUrl = API_URL.replace("/api/v1", "");
+    return `${baseUrl}${avatar}`;
+}
+
+// Функция для получения инициалов
+function getInitials(firstName: string | null | undefined, lastName: string | null | undefined): string {
+    const first = firstName?.[0]?.toUpperCase() ?? "";
+    const last = lastName?.[0]?.toUpperCase() ?? "";
+    return first + last || "?";
+}
+
 interface ChatMessagesListProps {
     containerRef: MutableRefObject<HTMLDivElement | null>;
     messages: ChatMessageDTO[];
     counterpartyTitle: string | null;
+    counterpartyTranslatorId?: number | null;
+    counterpartyUserId?: number | null;
     selfUserId?: number;
     initialLoading: boolean;
     ordersLoading: boolean;
@@ -35,6 +58,8 @@ export function ChatMessagesList({
     containerRef,
     messages,
     counterpartyTitle,
+    counterpartyTranslatorId,
+    counterpartyUserId,
     selfUserId,
     initialLoading,
     ordersLoading,
@@ -129,31 +154,66 @@ export function ChatMessagesList({
                         }
 
                         const isOwn = selfUserId !== undefined && message.sender === selfUserId;
+                        const senderAvatarUrl = message.sender_avatar ? getAvatarUrl(message.sender_avatar) : undefined;
+                        const senderInitials = getInitials(message.sender_first_name, message.sender_last_name);
+                        
                         return (
                             <Stack
                                 key={message.id}
-                                alignItems={isOwn ? "flex-end" : "flex-start"}
-                                spacing={0.5}
+                                direction="row"
+                                spacing={1}
+                                alignItems="flex-start"
+                                justifyContent={isOwn ? "flex-end" : "flex-start"}
+                                sx={{ width: "100%" }}
                             >
-                                <Typography variant="caption" color="text.secondary">
-                                    {isOwn ? "Вы" : counterpartyTitle ?? "Собеседник"}
-                                </Typography>
-                                <Box
-                                    sx={{
-                                        maxWidth: "70%",
-                                        px: 1.75,
-                                        py: 1.1,
-                                        borderRadius: 3,
-                                        bgcolor: isOwn ? "primary.main" : "grey.100",
-                                        color: isOwn ? "primary.contrastText" : "text.primary",
-                                        borderBottomRightRadius: isOwn ? 0 : 3,
-                                        borderBottomLeftRadius: isOwn ? 3 : 0,
-                                        boxShadow: 0,
-                                        whiteSpace: "pre-wrap",
-                                    }}
+                                {!isOwn && (
+                                    <Avatar
+                                        src={senderAvatarUrl}
+                                        sx={{ width: 32, height: 32, fontSize: 14 }}
+                                    >
+                                        {senderInitials}
+                                    </Avatar>
+                                )}
+                                <Stack
+                                    alignItems={isOwn ? "flex-end" : "flex-start"}
+                                    spacing={0.5}
+                                    sx={{ maxWidth: "70%", minWidth: 0 }}
                                 >
-                                    {message.text}
-                                </Box>
+                                    {!isOwn && (counterpartyTranslatorId || counterpartyUserId) ? (
+                                        <Link
+                                            component={RouterLink}
+                                            to={counterpartyTranslatorId ? `/translator/${counterpartyTranslatorId}` : `/client/${counterpartyUserId}`}
+                                            underline="hover"
+                                            sx={{ 
+                                                color: "text.secondary",
+                                                "&:hover": { color: "primary.main" },
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            <Typography variant="caption">
+                                                {counterpartyTitle ?? "Собеседник"}
+                                            </Typography>
+                                        </Link>
+                                    ) : (
+                                        <Typography variant="caption" color="text.secondary">
+                                            {isOwn ? "Вы" : counterpartyTitle ?? "Собеседник"}
+                                        </Typography>
+                                    )}
+                                    <Box
+                                        sx={{
+                                            px: 1.75,
+                                            py: 1.1,
+                                            borderRadius: 3,
+                                            bgcolor: isOwn ? "primary.main" : "grey.100",
+                                            color: isOwn ? "primary.contrastText" : "text.primary",
+                                            borderBottomRightRadius: isOwn ? 0 : 3,
+                                            borderBottomLeftRadius: isOwn ? 3 : 0,
+                                            boxShadow: 0,
+                                            whiteSpace: "pre-wrap",
+                                        }}
+                                    >
+                                        {message.text}
+                                    </Box>
                                 <Stack
                                     direction="row"
                                     spacing={1}
@@ -186,6 +246,7 @@ export function ChatMessagesList({
                                             )}
                                         </Stack>
                                     )}
+                                </Stack>
                                 </Stack>
                             </Stack>
                         );

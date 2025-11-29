@@ -56,6 +56,7 @@ export interface TranslatorProfileDTO {
     completed_orders_count: number;
     email_enabled: boolean;
     push_enabled: boolean;
+    avatar: string | File | null;
 }
 
 export interface LanguageFormState {

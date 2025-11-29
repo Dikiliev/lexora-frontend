@@ -7,6 +7,8 @@ import PostJob from "./pages/PostJob";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import TranslatorSettings from "./pages/TranslatorSettings";
+import ClientSettings from "./pages/ClientSettings";
+import ClientProfile from "./pages/ClientProfile";
 import TranslatorChats from "./pages/TranslatorChats";
 import ClientChats from "./pages/ClientChats";
 import Terms from "./pages/Terms";
@@ -23,6 +25,7 @@ export const router = createBrowserRouter([
             { index: true, element: <Home /> },
             { path: "search", element: <Search /> },
             { path: "translator/:id", element: <Profile /> },
+            { path: "client/:id", element: <ClientProfile /> },
             {
                 path: "post-job",
                 element: (
@@ -46,6 +49,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute roles={["translator"]}>
                         <TranslatorSettings />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "client/settings",
+                element: (
+                    <ProtectedRoute roles={["client"]}>
+                        <ClientSettings />
                     </ProtectedRoute>
                 ),
             },

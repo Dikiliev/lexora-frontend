@@ -235,26 +235,58 @@ export function useTranslatorSettingsForm(options: UseTranslatorSettingsFormOpti
 
     const submit = useCallback(async () => {
         const payload = buildSubmitPayload();
-        if (!payload) return;
+        if (!payload || !profile) return;
 
         setIsSaving(true);
         setError(null);
         setSuccess(null);
 
         try {
-            await request("/translators/me/", { method: "PATCH", json: payload });
+            // Если есть аватар (File), используем FormData
+            const hasAvatarFile = profile.avatar instanceof File;
+            
+            if (hasAvatarFile) {
+                const formData = new FormData();
+                
+                // Добавляем все поля профиля
+                formData.append("full_name", payload.full_name);
+                formData.append("experience_years", String(payload.experience_years));
+                formData.append("education", payload.education);
+                formData.append("hourly_rate", payload.hourly_rate);
+                if (payload.currency_id) {
+                    formData.append("currency_id", String(payload.currency_id));
+                }
+                formData.append("bio", payload.bio);
+                formData.append("email_enabled", String(payload.email_enabled));
+                formData.append("push_enabled", String(payload.push_enabled));
+                
+                // Добавляем аватар
+                formData.append("avatar", profile.avatar);
+                
+                // Добавляем массивы как JSON строки (будем парсить на бекенде)
+                formData.append("language_pairs", JSON.stringify(payload.language_pairs));
+                formData.append("specializations", JSON.stringify(payload.specializations));
+                
+                await request("/translators/me/", { method: "PATCH", body: formData });
+            } else {
+                // Если нет файла, используем обычный JSON
+                await request("/translators/me/", { method: "PATCH", json: payload });
+            }
+            
             await fetchUser();
             if (options.onAfterSubmit) {
                 await options.onAfterSubmit();
             }
             setSuccess("Профиль успешно обновлен");
+            // Перезагружаем профиль для получения обновленного аватара
+            await load();
         } catch (err) {
             const message = err instanceof Error ? err.message : "Не удалось сохранить профиль";
             setError(message);
         } finally {
             setIsSaving(false);
         }
-    }, [buildSubmitPayload, fetchUser, options]);
+    }, [buildSubmitPayload, fetchUser, options, profile, load]);
 
     const selectedSpecs = useMemo(
         () => specializations.filter((spec) => selectedSpecIds.includes(spec.id)),

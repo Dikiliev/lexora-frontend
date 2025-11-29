@@ -4,7 +4,10 @@ export type ChatMode = "translator" | "client";
 
 export interface CounterpartyInfo {
     title: string;
-    avatar: string;
+    avatar: string | null;
+    avatarUrl?: string | null;
+    userId?: number;
+    translatorId?: number;
 }
 
 function toTimestamp(value?: string | null) {
@@ -48,6 +51,8 @@ export function getCounterpartyInfo(thread: ChatThreadDTO, mode: ChatMode): Coun
         return {
             title: clientName ?? `Чат #${thread.id}`,
             avatar: getInitials(clientName, "К"),
+            avatarUrl: thread.client?.avatar ?? null,
+            userId: thread.client?.id,
         };
     }
 
@@ -58,6 +63,9 @@ export function getCounterpartyInfo(thread: ChatThreadDTO, mode: ChatMode): Coun
     return {
         title: translatorName ?? `Чат #${thread.id}`,
         avatar: getInitials(translatorName, "П"),
+        avatarUrl: thread.translator?.avatar ?? null,
+        translatorId: thread.translator?.id,
+        userId: thread.translator?.user_id,
     };
 }
 

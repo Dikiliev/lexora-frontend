@@ -1,7 +1,7 @@
-import { Avatar, Box, Button, Stack, TextField, Typography, MenuItem } from "@mui/material";
+import { Avatar, Box, Button, Stack, TextField, Typography } from "@mui/material";
 import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import { API_URL } from "../../../utils/api";
-import type { Currency, TranslatorProfileDTO } from "../types";
+import type { ClientProfileDTO } from "../types";
 
 // Функция для получения полного URL аватара
 function getAvatarUrl(avatar: string | File | null | undefined): string | undefined {
@@ -22,16 +22,11 @@ function getAvatarUrl(avatar: string | File | null | undefined): string | undefi
 }
 
 interface BasicsSectionProps {
-    profile: TranslatorProfileDTO;
-    availableCurrencies: Currency[];
-    onFieldChange: <K extends keyof TranslatorProfileDTO>(field: K, value: TranslatorProfileDTO[K]) => void;
+    profile: ClientProfileDTO;
+    onFieldChange: <K extends keyof ClientProfileDTO>(field: K, value: ClientProfileDTO[K]) => void;
 }
 
-export function BasicsSection({
-    profile,
-    availableCurrencies,
-    onFieldChange,
-}: BasicsSectionProps) {
+export function BasicsSection({ profile, onFieldChange }: BasicsSectionProps) {
     const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
@@ -46,7 +41,7 @@ export function BasicsSection({
                     Основная информация
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Это то, что видят клиенты в карточке и профиле переводчика.
+                    Это то, что видят переводчики в вашем профиле.
                 </Typography>
             </Stack>
 
@@ -56,7 +51,7 @@ export function BasicsSection({
                     src={getAvatarUrl(profile.avatar)}
                     sx={{ width: 80, height: 80 }}
                 >
-                    {profile.full_name?.[0] ?? "?"}
+                    {profile.first_name?.[0] ?? profile.last_name?.[0] ?? "?"}
                 </Avatar>
                 <Box>
                     <input
@@ -79,83 +74,48 @@ export function BasicsSection({
                 </Box>
             </Stack>
 
+            {/* Имя и фамилия */}
+            <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+            >
+                <TextField
+                    label="Имя"
+                    value={profile.first_name ?? ""}
+                    onChange={(event) =>
+                        onFieldChange("first_name", event.target.value)
+                    }
+                    fullWidth
+                />
+                <TextField
+                    label="Фамилия"
+                    value={profile.last_name ?? ""}
+                    onChange={(event) =>
+                        onFieldChange("last_name", event.target.value)
+                    }
+                    fullWidth
+                />
+            </Stack>
+
+            {/* Название компании */}
             <TextField
-                label="Полное имя"
-                value={profile.full_name}
+                label="Название компании"
+                value={profile.company_name ?? ""}
                 onChange={(event) =>
-                    onFieldChange("full_name", event.target.value)
+                    onFieldChange("company_name", event.target.value)
                 }
                 fullWidth
             />
 
-            <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={2}
-            >
-                <TextField
-                    label="Опыт (лет)"
-                    type="number"
-                    value={profile.experience_years ?? ""}
-                    onChange={(event) =>
-                        onFieldChange(
-                            "experience_years",
-                            Number(event.target.value ?? 0),
-                        )
-                    }
-                    fullWidth
-                />
-                <TextField
-                    label="Образование"
-                    value={profile.education ?? ""}
-                    onChange={(event) =>
-                        onFieldChange("education", event.target.value)
-                    }
-                    fullWidth
-                />
-            </Stack>
-
-            <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={2}
-            >
-                <TextField
-                    label="Базовая ставка (в час)"
-                    type="number"
-                    value={profile.hourly_rate ?? ""}
-                    onChange={(event) =>
-                        onFieldChange("hourly_rate", event.target.value)
-                    }
-                    fullWidth
-                />
-                <TextField
-                    label="Валюта"
-                    select
-                    value={profile.currency?.id ?? ""}
-                    onChange={(event) => {
-                        const currency = availableCurrencies.find(
-                            (c) => c.id === Number(event.target.value),
-                        );
-                        onFieldChange("currency", currency ?? null);
-                    }}
-                    fullWidth
-                >
-                    {availableCurrencies.map((currency) => (
-                        <MenuItem key={currency.id} value={currency.id}>
-                            {currency.code} ({currency.name})
-                        </MenuItem>
-                    ))}
-                </TextField>
-            </Stack>
-
+            {/* Телефон */}
             <TextField
-                label="О себе"
-                value={profile.bio ?? ""}
+                label="Телефон"
+                value={profile.phone ?? ""}
                 onChange={(event) =>
-                    onFieldChange("bio", event.target.value)
+                    onFieldChange("phone", event.target.value || null)
                 }
-                multiline
-                minRows={4}
                 fullWidth
+                type="tel"
             />
         </Stack>
     );

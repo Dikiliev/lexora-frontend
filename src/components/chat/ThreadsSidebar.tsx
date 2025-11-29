@@ -11,9 +11,20 @@ import {
     Typography,
 } from "@mui/material";
 
+import { API_URL } from "../../utils/api";
 import type { ChatThreadDTO } from "../../utils/chat";
 import type { ChatMode } from "../../utils/chatThreads";
 import { getCounterpartyInfo, getThreadPreview } from "../../utils/chatThreads";
+
+// Функция для получения полного URL аватара
+function getAvatarUrl(avatar: string | null | undefined): string | undefined {
+    if (!avatar) return undefined;
+    if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+        return avatar;
+    }
+    const baseUrl = API_URL.replace("/api/v1", "");
+    return `${baseUrl}${avatar}`;
+}
 
 interface ThreadsSidebarProps {
     threads: ChatThreadDTO[];
@@ -98,7 +109,10 @@ export function ThreadsSidebar({
                                         overlap="circular"
                                         anchorOrigin={{ vertical: "top", horizontal: "right" }}
                                     >
-                                        <Avatar sx={{ width: 40, height: 40, fontSize: 18 }}>
+                                        <Avatar 
+                                            src={info.avatarUrl ? getAvatarUrl(info.avatarUrl) : undefined}
+                                            sx={{ width: 40, height: 40, fontSize: 18 }}
+                                        >
                                             {info.avatar}
                                         </Avatar>
                                     </Badge>
