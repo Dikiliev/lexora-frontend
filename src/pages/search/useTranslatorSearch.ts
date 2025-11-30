@@ -17,6 +17,7 @@ export interface TranslatorListItem {
     completedOrders: number;
     languages: LanguagePairDTO[];
     specializations: SpecializationWithMeta[];
+    avatar: string | null;
 }
 
 export interface TranslatorSearchFilters {
@@ -67,6 +68,7 @@ function normalizeTranslator(item: TranslatorProfileDTO): TranslatorListItem {
         completedOrders: item.completed_orders_count,
         languages: item.language_pairs ?? [],
         specializations: item.specializations ?? [],
+        avatar: item.avatar ?? null,
     };
 }
 

@@ -33,6 +33,11 @@ export function ProfileHeader({
             }}
         >
             <Avatar
+                src={
+                    profile.avatar && typeof profile.avatar === "string" && profile.avatar.trim()
+                        ? profile.avatar
+                        : undefined
+                }
                 sx={{
                     width: 80,
                     height: 80,

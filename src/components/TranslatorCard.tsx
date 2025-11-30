@@ -95,6 +95,7 @@ export default function TranslatorCard({ translator }: TranslatorCardProps) {
                     <Stack direction="row" spacing={2} alignItems="flex-start">
                         {/* Аватар */}
                         <Avatar
+                            src={translator.avatar || undefined}
                             sx={{
                                 width: 56,
                                 height: 56,
@@ -103,7 +104,7 @@ export default function TranslatorCard({ translator }: TranslatorCardProps) {
                                 flexShrink: 0,
                             }}
                         >
-                            <TranslateRoundedIcon />
+                            {translator.avatar ? null : <TranslateRoundedIcon />}
                         </Avatar>
 
                         {/* Основной контент */}

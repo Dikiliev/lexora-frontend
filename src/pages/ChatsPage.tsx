@@ -349,8 +349,6 @@ export default function ChatsPage({ mode }: ChatsPageProps) {
                                         containerRef={messagesContainerRef}
                                         messages={messages}
                                         counterpartyTitle={counterparty?.title ?? null}
-                                        counterpartyTranslatorId={counterparty?.translatorId ?? null}
-                                        counterpartyUserId={counterparty?.userId ?? null}
                                         selfUserId={selfUserId ?? undefined}
                                         initialLoading={initialLoading}
                                         ordersLoading={ordersLoading}
