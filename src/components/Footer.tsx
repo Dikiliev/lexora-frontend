@@ -1,203 +1,198 @@
-import { Box, Container, Stack, Typography, Link, useTheme } from "@mui/material";
+import * as React from "react";
+import { Box, Container, Divider, Link, Stack, Typography, Grid } from "@mui/material";
+import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import CallRoundedIcon from "@mui/icons-material/CallRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 
-type FooterProps = {
-    /** Можно отключить верхнюю границу, если футер стоит прямо под секцией с бордером */
-    hideTopBorder?: boolean;
-};
+type FooterProps = { hideTopBorder?: boolean };
+type FooterLink = { label: string; to: string; isAnchor?: boolean };
 
-const footerColumns = [
+const footerColumns: Array<{ title: string; links: FooterLink[] }> = [
     {
         title: "Заказчикам",
         links: [
-            { label: "Найти переводчика", to: "/search", isAnchor: false },
-            { label: "Разместить заказ", to: "/post-job", isAnchor: false },
+            { label: "Найти переводчика", to: "/search" },
+            { label: "Разместить заказ", to: "/post-job" },
             { label: "Как это работает", to: "/#how", isAnchor: true },
         ],
     },
     {
         title: "Переводчикам",
         links: [
-            { label: "Стать переводчиком", to: "/register", isAnchor: false },
-            { label: "Настройки профиля", to: "/translator/settings", isAnchor: false },
-            { label: "FAQ", to: "/faq", isAnchor: false },
+            { label: "Стать переводчиком", to: "/register" },
+            { label: "Настройки профиля", to: "/translator/settings" },
+            { label: "FAQ", to: "/faq" },
         ],
     },
     {
         title: "Сервис",
-        links: [
-            { label: "О нас", to: "/about", isAnchor: false },
-        ],
+        links: [{ label: "О нас", to: "/about" }],
     },
 ];
 
-const Footer: React.FC<FooterProps> = ({ hideTopBorder }) => {
-    const theme = useTheme();
+function splitAnchor(to: string) {
+    const [pathRaw, hashRaw] = to.split("#");
+    return { path: pathRaw && pathRaw.length ? pathRaw : "/", hash: (hashRaw ?? "").trim() };
+}
+
+export default function Footer({ hideTopBorder }: FooterProps) {
     const navigate = useNavigate();
     const location = useLocation();
+    const year = new Date().getFullYear();
 
-    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, to: string, isAnchor: boolean) => {
-        if (isAnchor) {
-            e.preventDefault();
-            const [path, hash] = to.split("#");
-            if (location.pathname !== path) {
-                // Переходим на другую страницу с якорем
-                navigate(to);
-            } else {
-                // Уже на нужной странице, скроллим к элементу
-                const element = document.getElementById(hash);
-                if (element) {
-                    const headerOffset = 100;
-                    const elementPosition = element.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: "smooth",
-                    });
-                }
-            }
-        }
+    const scrollToId = (id: string) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        const headerOffset = 100;
+        const y = el.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
     };
+
+    const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, to: string) => {
+        e.preventDefault();
+        const { path, hash } = splitAnchor(to);
+
+        if (location.pathname !== path) {
+            navigate(to);
+            return;
+        }
+        if (hash) scrollToId(hash);
+    };
+
+    const linkSx = {
+        color: "text.secondary",
+        textDecoration: "none",
+        "&:hover": { color: "text.primary" },
+    } as const;
 
     return (
         <Box
             component="footer"
             sx={{
-                mt: { xs: 6, md: 10 },
+                mt: { xs: 4, md: 8 },
                 borderTop: hideTopBorder ? "none" : "1px solid",
-                borderColor: theme.palette.divider,
-                bgcolor: theme.palette.background.paper,
+                borderColor: "divider",
+                bgcolor: "background.paper",
             }}
         >
-            <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-                {/* Верхняя часть: брендинг + колонки ссылок */}
-                <Stack
-                    direction={{ xs: "column", md: "row" }}
-                    spacing={{ xs: 4, md: 8 }}
-                    justifyContent="space-between"
-                >
-                    {/* Бренд и описание */}
-                    <Stack spacing={2} maxWidth={360}>
-                        <Stack direction="row" spacing={1.5} alignItems="center">
-                            <Box
-                                sx={{
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: 2,
-                                    background: "linear-gradient(135deg,#FF4D2E,#FF8A65)",
-                                }}
-                            />
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontWeight: 900,
-                                    letterSpacing: -0.4,
-                                }}
-                            >
-                                LEXORA
+            <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+                <Grid container spacing={{ xs: 3, md: 4 }} alignItems="flex-start">
+                    {/* Лево: бренд/описание/контакты */}
+                    <Grid size={{ xs: 12, md: 5 }}>
+                        <Stack spacing={1.25}>
+                            <Typography sx={{ fontWeight: 800, letterSpacing: -0.2 }}>LEXORA</Typography>
+
+                            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 520 }}>
+                                Сервис подбора переводчиков под задачу: документы, встречи, онлайн-созвоны.
                             </Typography>
-                        </Stack>
 
-                        <Typography variant="body2" color="text.secondary">
-                            Сервис подбора профессиональных переводчиков под ваши задачи: документы, встречи,
-                            онлайн-созвоны и многое другое.
-                        </Typography>
-                    </Stack>
-
-                    {/* Колонки навигации */}
-                    <Stack direction="row" spacing={{ xs: 4, md: 6 }} flexWrap="wrap">
-                        {footerColumns.map((column) => (
-                            <Box key={column.title} sx={{ minWidth: 140 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                                    {column.title}
-                                </Typography>
-                                <Stack spacing={0.5}>
-                                    {column.links.map((link) => (
-                                        <Link
-                                            key={link.label}
-                                            component={link.isAnchor ? "a" : RouterLink}
-                                            href={link.isAnchor ? link.to : undefined}
-                                            to={link.isAnchor ? undefined : link.to}
-                                            variant="body2"
-                                            color="text.secondary"
-                                            underline="none"
-                                            onClick={(e) => handleLinkClick(e, link.to, link.isAnchor)}
-                                            sx={{
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                cursor: "pointer",
-                                                "&:hover": {
-                                                    color: "text.primary",
-                                                },
-                                            }}
-                                        >
-                                            {link.label}
-                                        </Link>
-                                    ))}
+                            <Stack spacing={0.75} sx={{ pt: 0.5 }}>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <EmailRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    <Link href="mailto:support@lexora.ru" underline="hover" sx={linkSx} variant="body2">
+                                        support@lexora.ru
+                                    </Link>
                                 </Stack>
-                            </Box>
-                        ))}
-                    </Stack>
-                </Stack>
 
-                {/* Нижняя плашка: копирайт + легал + контакты */}
-                <Stack
-                    direction={{ xs: "column", md: "row" }}
-                    spacing={2}
-                    mt={{ xs: 4, md: 6 }}
-                    justifyContent="space-between"
-                    alignItems={{ xs: "flex-start", md: "center" }}
-                >
-                    <Box>
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                            © {new Date().getFullYear()} LEXORA. Все права защищены.
-                        </Typography>
-                        <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mt: 1 }}>
-                            <Typography variant="body2" color="text.secondary">
-                                Email:{" "}
-                                <Link href="mailto:support@lexora.ru" color="primary" underline="hover">
-                                    support@lexora.ru
-                                </Link>
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Телефон:{" "}
-                                <Link href="tel:+78001234567" color="primary" underline="hover">
-                                    +7 (800) 123-45-67
-                                </Link>
-                            </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <CallRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    <Link href="tel:+78001234567" underline="hover" sx={linkSx} variant="body2">
+                                        +7 (800) 123-45-67
+                                    </Link>
+                                </Stack>
+
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <AccessTimeRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    <Typography variant="body2" color="text.secondary">
+                                        Пн–Пт 9:00–18:00 МСК
+                                    </Typography>
+                                </Stack>
+                            </Stack>
                         </Stack>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                            Время работы: Пн-Пт, 9:00 — 18:00 МСК
-                        </Typography>
-                    </Box>
+                    </Grid>
 
-                    <Stack direction="row" spacing={2} flexWrap="wrap">
-                        <Link
-                            component={RouterLink}
-                            to="/terms"
-                            variant="body2"
-                            color="text.secondary"
-                            underline="none"
-                            sx={{ "&:hover": { color: "text.primary" } }}
-                        >
+                    {/* Право: навигация (на ПК всегда справа) */}
+                    <Grid
+                        size={{ xs: 12, md: 7 }}
+                        sx={{
+                            display: "flex",
+                            justifyContent: { xs: "flex-start", md: "flex-end" },
+                        }}
+                    >
+                        <Box sx={{ width: { xs: "100%", md: "auto" } }}>
+                            <Grid container spacing={{ xs: 2, md: 4 }}>
+                                {footerColumns.map((col, idx) => (
+                                    <Grid
+                                        key={col.title}
+                                        size={{ xs: idx === 2 ? 12 : 6, md: 4 }}
+                                        sx={{ minWidth: { md: 180 } }}
+                                    >
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                                            {col.title}
+                                        </Typography>
+
+                                        <Stack spacing={0.5}>
+                                            {col.links.map((l) =>
+                                                l.isAnchor ? (
+                                                    <Link
+                                                        key={l.label}
+                                                        href={l.to}
+                                                        onClick={(e) => handleAnchorClick(e, l.to)}
+                                                        variant="body2"
+                                                        underline="none"
+                                                        sx={linkSx}
+                                                    >
+                                                        {l.label}
+                                                    </Link>
+                                                ) : (
+                                                    <Link
+                                                        key={l.label}
+                                                        component={RouterLink}
+                                                        to={l.to}
+                                                        variant="body2"
+                                                        underline="none"
+                                                        sx={linkSx}
+                                                    >
+                                                        {l.label}
+                                                    </Link>
+                                                ),
+                                            )}
+                                        </Stack>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </Box>
+                    </Grid>
+                </Grid>
+
+                <Divider sx={{ my: 2.5 }} />
+
+                {/* Низ */}
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { xs: "flex-start", sm: "center" },
+                        justifyContent: "space-between",
+                        gap: 1,
+                    }}
+                >
+                    <Typography variant="body2" color="text.secondary">
+                        © {year} LEXORA. Все права защищены.
+                    </Typography>
+
+                    <Box sx={{ display: "flex", flexWrap: "wrap", columnGap: 2, rowGap: 0.5 }}>
+                        <Link component={RouterLink} to="/terms" variant="body2" underline="none" sx={linkSx}>
                             Пользовательское соглашение
                         </Link>
-                        <Link
-                            component={RouterLink}
-                            to="/privacy"
-                            variant="body2"
-                            color="text.secondary"
-                            underline="none"
-                            sx={{ "&:hover": { color: "text.primary" } }}
-                        >
+                        <Link component={RouterLink} to="/privacy" variant="body2" underline="none" sx={linkSx}>
                             Политика конфиденциальности
                         </Link>
-                    </Stack>
-                </Stack>
+                    </Box>
+                </Box>
             </Container>
         </Box>
     );
-};
-
-export default Footer;
-
+}

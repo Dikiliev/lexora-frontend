@@ -43,7 +43,7 @@ const HowItWorks: React.FC = () => {
                 scrollMarginTop: "100px",
             }}
         >
-            <Container>
+            <Container disableGutters>
                 <SectionHeading
                     title="Как это работает"
                     subtitle="Три шага от запроса до результата: задайте фильтры, получите точные совпадения, договоритесь напрямую."
@@ -51,7 +51,7 @@ const HowItWorks: React.FC = () => {
 
                 <Grid
                     container
-                    spacing={{ xs: 2.5, md: 3 }}
+                    spacing={3}
                     sx={{ mt: { xs: 3, md: 4 } }}
                 >
                     {STEPS.map((step) => (

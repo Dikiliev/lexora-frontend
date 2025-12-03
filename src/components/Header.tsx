@@ -172,24 +172,24 @@ export default function Header() {
                                             </Badge>
                                             Чаты
                                         </Link>
-                                        {isClient && (
-                                            <Link
-                                                component={RouterLink}
-                                                to="/post-job"
-                                                underline="none"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    color: pathname === "/post-job" ? "primary.main" : "text.primary",
-                                                    "&:hover": { color: "primary.main" },
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: 0.5,
-                                                }}
-                                            >
-                                                <PostAddRoundedIcon fontSize="small" />
-                                                Разместить заказ
-                                            </Link>
-                                        )}
+                                        {/*{isClient && (*/}
+                                        {/*    <Link*/}
+                                        {/*        component={RouterLink}*/}
+                                        {/*        to="/post-job"*/}
+                                        {/*        underline="none"*/}
+                                        {/*        sx={{*/}
+                                        {/*            fontWeight: 600,*/}
+                                        {/*            color: pathname === "/post-job" ? "primary.main" : "text.primary",*/}
+                                        {/*            "&:hover": { color: "primary.main" },*/}
+                                        {/*            display: "flex",*/}
+                                        {/*            alignItems: "center",*/}
+                                        {/*            gap: 0.5,*/}
+                                        {/*        }}*/}
+                                        {/*    >*/}
+                                        {/*        <PostAddRoundedIcon fontSize="small" />*/}
+                                        {/*        Разместить заказ*/}
+                                        {/*    </Link>*/}
+                                        {/*)}*/}
                                         <Link
                                             component="button"
                                             onClick={(event) => setMenuAnchor(event.currentTarget)}

@@ -92,17 +92,17 @@ export default function Home() {
                                     >
                                         Начать поиск
                                     </Button>
-                                    <Stack direction="row" spacing={1}>
-                                        <IconButton aria-label="Pairs" color="inherit" title="200+ языковых пар">
-                                            <LanguageRoundedIcon />
-                                        </IconButton>
-                                        <IconButton aria-label="Verified" color="inherit" title="Проверенные специалисты">
-                                            <ShieldRoundedIcon />
-                                        </IconButton>
-                                        <IconButton aria-label="Fast" color="inherit" title="Быстрый старт">
-                                            <TimerRoundedIcon />
-                                        </IconButton>
-                                    </Stack>
+                                    {/*<Stack direction="row" spacing={1}>*/}
+                                    {/*    <IconButton aria-label="Pairs" color="inherit" title="200+ языковых пар">*/}
+                                    {/*        <LanguageRoundedIcon />*/}
+                                    {/*    </IconButton>*/}
+                                    {/*    <IconButton aria-label="Verified" color="inherit" title="Проверенные специалисты">*/}
+                                    {/*        <ShieldRoundedIcon />*/}
+                                    {/*    </IconButton>*/}
+                                    {/*    <IconButton aria-label="Fast" color="inherit" title="Быстрый старт">*/}
+                                    {/*        <TimerRoundedIcon />*/}
+                                    {/*    </IconButton>*/}
+                                    {/*</Stack>*/}
                                 </Stack>
                             </Stack>
                         </Grid>
@@ -158,10 +158,12 @@ export default function Home() {
                 <TrustBar />
             </Container>
 
-            <HowItWorks />
+            <Container sx={{ mt: 4 }}>
+                <HowItWorks />
+            </Container>
 
             {/* ===== DOMAINS (тематики) ===== */}
-            <Container sx={{ mt: 3, mb: 2 }}>
+            <Container sx={{ mt: 3, mb: 3 }}>
                 <DomainsPanel />
             </Container>
 
