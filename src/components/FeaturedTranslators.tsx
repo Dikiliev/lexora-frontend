@@ -13,6 +13,7 @@ const FeaturedTranslators = () => {
             specializationId: null,
             maxRate: null,
             minRating: null,
+            search: null,
         }),
         [],
     );

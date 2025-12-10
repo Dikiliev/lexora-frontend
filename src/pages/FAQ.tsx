@@ -1,4 +1,4 @@
-import { Box, Container, Stack, Typography } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import SectionHeading from "../components/SectionHeading";
 import FAQ from "../components/FAQ";
 

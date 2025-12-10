@@ -57,13 +57,53 @@ export const useAuthStore = create<AuthState>()(
                         first_name: firstName,
                         last_name: lastName,
                     };
-                    await request("/auth/register", {
+                    const response = await request<{
+                        error: boolean;
+                        message?: string;
+                        details?: Record<string, unknown>;
+                    }>("/auth/register", {
                         method: "POST",
                         json: jsonPayload,
                     });
-                    set({ isLoading: false, error: undefined });
+                    
+                    // Если ответ содержит сообщение об успехе
+                    if (response && !response.error && response.message) {
+                        // Успешная регистрация
+                        set({ isLoading: false, error: undefined });
+                    } else {
+                        set({ isLoading: false, error: undefined });
+                    }
                 } catch (error) {
-                    const message = error instanceof Error ? error.message : "Не удалось зарегистрироваться";
+                    let message = "Не удалось зарегистрироваться";
+                    
+                    if (error instanceof Error) {
+                        message = error.message;
+                        
+                        // Извлекаем детали из data, если есть
+                        const errorWithData = error as Error & { data?: { message?: string; details?: Record<string, unknown> } };
+                        if (errorWithData.data) {
+                            if (errorWithData.data.message) {
+                                message = errorWithData.data.message;
+                                
+                                // Добавляем детали ошибок полей
+                                if (errorWithData.data.details) {
+                                    const details = errorWithData.data.details;
+                                    const detailMessages: string[] = [];
+                                    for (const [field, value] of Object.entries(details)) {
+                                        if (Array.isArray(value)) {
+                                            detailMessages.push(`${field}: ${value.join(", ")}`);
+                                        } else if (typeof value === "string") {
+                                            detailMessages.push(`${field}: ${value}`);
+                                        }
+                                    }
+                                    if (detailMessages.length > 0) {
+                                        message = `${message}\n${detailMessages.join("\n")}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                     set({ error: message, isLoading: false });
                     throw error;
                 }

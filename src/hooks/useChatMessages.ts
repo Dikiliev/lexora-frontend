@@ -140,12 +140,21 @@ export function useChatMessages({
                 socketRef.current.close();
                 socketRef.current = null;
             }
+            setError(null);
             return;
         }
 
         const wsUrl = buildThreadWsUrl(selectedThreadId, accessToken);
+        console.log("[WebSocket] Connecting to:", wsUrl);
         const socket = new WebSocket(wsUrl);
         socketRef.current = socket;
+        let isConnected = false;
+        
+        socket.onopen = () => {
+            console.log("[WebSocket] Connected successfully to thread", selectedThreadId);
+            isConnected = true;
+            setError(null);
+        };
 
         socket.onmessage = (event) => {
             try {
@@ -268,13 +277,35 @@ export function useChatMessages({
             }
         };
 
-        socket.onerror = () => {
-            setError("Не удалось установить WebSocket-соединение");
+        socket.onerror = (error) => {
+            console.error("[WebSocket] Connection error:", error);
+            console.error("[WebSocket] URL was:", wsUrl);
+            // Не устанавливаем ошибку сразу, подождем onclose
+        };
+        
+        socket.onclose = (event) => {
+            console.log("[WebSocket] Connection closed:", event.code, event.reason);
+            // Код 1000 - нормальное закрытие
+            // Код 1006 - закрытие без handshake (может быть из-за React StrictMode)
+            // Устанавливаем ошибку только если:
+            // 1. Это не нормальное закрытие (код 1000)
+            // 2. Это не закрытие без handshake (код 1006) - часто из-за React StrictMode
+            // 3. Соединение не было установлено (isConnected === false)
+            // 4. Это все еще текущее соединение
+            if (!isConnected && event.code !== 1000 && event.code !== 1006 && socketRef.current === socket) {
+                setError("Не удалось установить WebSocket-соединение");
+            }
         };
 
         return () => {
-            socketRef.current = null;
-            socket.close();
+            // Cleanup: закрываем соединение при размонтировании или изменении зависимостей
+            if (socketRef.current === socket) {
+                socketRef.current = null;
+                // Убираем обработчики перед закрытием, чтобы не сработал onclose с ошибкой
+                socket.onerror = null;
+                socket.onclose = null;
+                socket.close(1000, "Component unmounted");
+            }
         };
     }, [selectedThreadId, accessToken, onThreadsUpdate, selfUserId, onOrdersSync]);
 

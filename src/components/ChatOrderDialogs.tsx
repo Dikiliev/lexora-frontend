@@ -18,8 +18,6 @@ import { Autocomplete } from "@mui/material";
 import { useCurrencies } from "../hooks/useCurrencies";
 import { useLanguages } from "../hooks/useLanguages";
 
-import type { Currency, Language } from "../pages/translator-settings/types";
-
 export interface OrderFormState {
     title: string;
     description: string;
@@ -47,7 +45,7 @@ interface CreateDialogProps {
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     onChange: (
         field: keyof OrderFormState,
-    ) => (event: ChangeEvent<HTMLInputElement> | { target: { value: number | null } }) => void;
+    ) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { value: number | null | string } }) => void;
 }
 
 interface RequestChangeDialogProps {
@@ -58,7 +56,7 @@ interface RequestChangeDialogProps {
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     onChange: (
         field: keyof RequestChangeFormState,
-    ) => (event: ChangeEvent<HTMLInputElement>) => void;
+    ) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { value: number | null | string } }) => void;
 }
 
 interface ChatOrderDialogsProps {
@@ -159,7 +157,7 @@ export function ChatOrderDialogs({
                                         onChange={(_event, value) => {
                                             const event = {
                                                 target: { value: value?.id ?? null },
-                                            } as ChangeEvent<HTMLInputElement>;
+                                            } as { target: { value: number | null } };
                                             createDialog.onChange("source_lang_id")(event);
                                         }}
                                         renderInput={(params) => (
@@ -184,7 +182,7 @@ export function ChatOrderDialogs({
                                         onChange={(_event, value) => {
                                             const event = {
                                                 target: { value: value?.id ?? null },
-                                            } as ChangeEvent<HTMLInputElement>;
+                                            } as { target: { value: number | null } };
                                             createDialog.onChange("target_lang_id")(event);
                                         }}
                                         renderInput={(params) => (
@@ -233,7 +231,7 @@ export function ChatOrderDialogs({
                                             const value = event.target.value === "" ? null : Number(event.target.value);
                                             const changeEvent = {
                                                 target: { value },
-                                            } as ChangeEvent<HTMLInputElement>;
+                                            } as { target: { value: number | null } };
                                             createDialog.onChange("currency_id")(changeEvent);
                                         }}
                                         fullWidth
@@ -362,7 +360,7 @@ export function ChatOrderDialogs({
                                         const value = event.target.value === "" ? null : Number(event.target.value);
                                         const changeEvent = {
                                             target: { value },
-                                        } as ChangeEvent<HTMLInputElement>;
+                                        } as { target: { value: number | null } };
                                         requestChangeDialog.onChange("currency_id")(changeEvent);
                                     }}
                                     fullWidth

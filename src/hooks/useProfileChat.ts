@@ -20,7 +20,7 @@ interface UseProfileChatOptions {
 export function useProfileChat({
     translatorProfileId,
     accessToken,
-    userId,
+    userId: _userId,
     isOpen,
 }: UseProfileChatOptions) {
     const [chatThread, setChatThread] = useState<ChatThreadDTO | null>(null);
@@ -58,6 +58,7 @@ export function useProfileChat({
                         thread_id: data.thread,
                         sender: data.sender,
                         text: data.text,
+                        message_type: data.message_type || "text",
                         is_read: Boolean(data.is_read),
                         created_at: data.created_at,
                     };

@@ -198,6 +198,7 @@ export function buildThreadWsUrl(threadId: number, token: string) {
     try {
         const apiUrl = new URL(API_URL);
         const protocol = apiUrl.protocol === "https:" ? "wss:" : "ws:";
+        // WebSocket не использует /api/v1 префикс, только /ws/
         return `${protocol}//${apiUrl.host}/ws/chat/threads/${threadId}/?token=${encodeURIComponent(token)}`;
     } catch {
         const { protocol, host } = window.location;
@@ -210,6 +211,7 @@ export function buildNotificationsWsUrl(token: string) {
     try {
         const apiUrl = new URL(API_URL);
         const protocol = apiUrl.protocol === "https:" ? "wss:" : "ws:";
+        // WebSocket не использует /api/v1 префикс, только /ws/
         return `${protocol}//${apiUrl.host}/ws/notifications/?token=${encodeURIComponent(token)}`;
     } catch {
         const { protocol, host } = window.location;

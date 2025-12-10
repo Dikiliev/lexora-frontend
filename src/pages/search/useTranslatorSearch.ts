@@ -68,7 +68,7 @@ function normalizeTranslator(item: TranslatorProfileDTO): TranslatorListItem {
         completedOrders: item.completed_orders_count,
         languages: item.language_pairs ?? [],
         specializations: item.specializations ?? [],
-        avatar: item.avatar ?? null,
+        avatar: typeof item.avatar === "string" ? item.avatar : null,
     };
 }
 

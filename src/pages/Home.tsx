@@ -1,9 +1,6 @@
-import { Box, Button, Container, Grid, IconButton, Stack, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, Stack, Typography } from "@mui/material";
 import TranslateIcon from '@mui/icons-material/Translate';
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
-import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
-import TimerRoundedIcon from "@mui/icons-material/TimerRounded";
 import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 

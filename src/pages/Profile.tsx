@@ -176,7 +176,7 @@ export default function Profile() {
 
                 <LanguagesSection
                     languages={languages}
-                    currency={profile.currency?.code ?? "USD"}
+                    currency={profile.currency ?? null}
                     formatLanguagePair={formatLanguagePair}
                 />
 

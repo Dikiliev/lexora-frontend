@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { request } from "../../utils/api";
 import { useAuthStore } from "../../stores/authStore";
-import { useLanguages } from "../../hooks/useLanguages";
 import { useCurrencies } from "../../hooks/useCurrencies";
 import type {
     Currency,
-    Language,
     LanguageFormState,
     LanguagePairDTO,
     SpecializationMetaMap,
@@ -53,7 +51,6 @@ export function useTranslatorSettingsForm(options: UseTranslatorSettingsFormOpti
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    const { languages: availableLanguages } = useLanguages();
     const { currencies } = useCurrencies();
     const fetchUser = useAuthStore((state) => state.fetchUser);
 
@@ -260,8 +257,10 @@ export function useTranslatorSettingsForm(options: UseTranslatorSettingsFormOpti
                 formData.append("email_enabled", String(payload.email_enabled));
                 formData.append("push_enabled", String(payload.push_enabled));
                 
-                // Добавляем аватар
-                formData.append("avatar", profile.avatar);
+                // Добавляем аватар только если он есть
+                if (profile.avatar && profile.avatar instanceof File) {
+                    formData.append("avatar", profile.avatar);
+                }
                 
                 // Добавляем массивы как JSON строки (будем парсить на бекенде)
                 formData.append("language_pairs", JSON.stringify(payload.language_pairs));

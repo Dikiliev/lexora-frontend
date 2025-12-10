@@ -2,7 +2,7 @@ import { Avatar, Button, IconButton, Stack, Typography, Box, Link } from "@mui/m
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import AddIcon from "@mui/icons-material/Add";
 import RateReviewIcon from "@mui/icons-material/RateReview";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { API_URL } from "../../utils/api";
 
 import type { ChatThreadDTO } from "../../utils/chat";
@@ -39,17 +39,6 @@ export function ChatHeader({
     showBackButton,
     onBack,
 }: ChatHeaderProps) {
-    const navigate = useNavigate();
-    
-    const handleNameClick = () => {
-        if (!counterparty) return;
-        // Если это переводчик, переходим на его профиль
-        if (counterparty.translatorId) {
-            navigate(`/translator/${counterparty.translatorId}`);
-        }
-        // Для клиентов пока нет профиля, но можно добавить позже
-    };
-
     const avatarUrl = counterparty?.avatarUrl ? getAvatarUrl(counterparty.avatarUrl) : undefined;
     const avatarInitials = counterparty?.avatar ?? counterparty?.title?.[0] ?? "?";
 

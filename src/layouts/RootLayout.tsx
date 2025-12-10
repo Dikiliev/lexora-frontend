@@ -61,9 +61,14 @@ function ChatNotificationCenter() {
             cleanupSocket();
 
             const url = buildNotificationsWsUrl(accessToken);
+            console.log("[WebSocket Notifications] Connecting to:", url);
             const socket = new WebSocket(url);
             socketRef.current = socket;
-
+            
+            socket.onopen = () => {
+                console.log("[WebSocket Notifications] Connected successfully");
+            };
+            
             socket.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
@@ -114,13 +119,21 @@ function ChatNotificationCenter() {
                 }
             };
 
-            socket.onerror = () => {
-                socket.close();
+            socket.onerror = (error) => {
+                console.error("[WebSocket Notifications] Connection error:", error);
+                console.error("[WebSocket Notifications] URL was:", url);
+                // Закрываем соединение при ошибке, onclose обработает переподключение
+                if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+                    socket.close();
+                }
             };
 
-            socket.onclose = () => {
+            socket.onclose = (event) => {
+                console.log("[WebSocket Notifications] Connection closed:", event.code, event.reason);
                 socketRef.current = null;
-                if (!isUnmounted) {
+                // Переподключаемся только если это не было нормальное закрытие (код 1000)
+                // и компонент не размонтирован
+                if (!isUnmounted && event.code !== 1000) {
                     if (retryRef.current) {
                         window.clearTimeout(retryRef.current);
                         retryRef.current = null;

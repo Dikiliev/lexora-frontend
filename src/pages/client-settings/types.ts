@@ -3,7 +3,7 @@ export interface ClientProfileDTO {
     last_name: string;
     company_name: string;
     phone: string | null;
-    avatar: string | null;
+    avatar: string | File | null;
     contacts: Record<string, unknown>;
     order_count: number;
     email_enabled: boolean;

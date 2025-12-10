@@ -56,19 +56,81 @@ export async function request<T = unknown>(path: string, options: RequestOptions
 
     if (!response.ok) {
         let message = `${response.status} ${response.statusText}`;
+        let errorData: unknown = null;
         try {
-            const error = await response.json();
-            if (typeof error === "string") {
-                message = error;
-            } else if (error?.detail) {
-                message = error.detail;
-            } else {
-                message = Object.values(error)[0] as string;
+            errorData = await response.json();
+            
+            // Обработка нового формата ошибок с error, message, details
+            if (errorData && typeof errorData === "object") {
+                // Новый формат: { error: true, message: "...", details: {...} }
+                if ("message" in errorData && typeof errorData.message === "string") {
+                    message = errorData.message;
+                    
+                    // Если есть details, формируем детальное сообщение
+                    if ("details" in errorData && errorData.details && typeof errorData.details === "object") {
+                        const details = errorData.details as Record<string, unknown>;
+                        const detailMessages: string[] = [];
+                        
+                        for (const [field, value] of Object.entries(details)) {
+                            if (Array.isArray(value)) {
+                                detailMessages.push(`${field}: ${value.join(", ")}`);
+                            } else if (typeof value === "string") {
+                                detailMessages.push(`${field}: ${value}`);
+                            }
+                        }
+                        
+                        if (detailMessages.length > 0) {
+                            message = `${message}\n${detailMessages.join("\n")}`;
+                        }
+                    }
+                }
+                // Старый формат DRF: { detail: "..." }
+                else if ("detail" in errorData) {
+                    if (typeof errorData.detail === "string") {
+                        message = errorData.detail;
+                    } else if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
+                        message = String(errorData.detail[0]);
+                    } else if (typeof errorData.detail === "object") {
+                        // Если detail - объект с ошибками полей
+                        const detailObj = errorData.detail as Record<string, unknown>;
+                        const fieldErrors: string[] = [];
+                        for (const [field, errors] of Object.entries(detailObj)) {
+                            if (Array.isArray(errors)) {
+                                fieldErrors.push(`${field}: ${errors.join(", ")}`);
+                            } else {
+                                fieldErrors.push(`${field}: ${String(errors)}`);
+                            }
+                        }
+                        message = fieldErrors.join("\n");
+                    }
+                }
+                // Если это объект с ошибками полей напрямую
+                else {
+                    const fieldErrors: string[] = [];
+                    for (const [field, value] of Object.entries(errorData)) {
+                        if (Array.isArray(value)) {
+                            fieldErrors.push(`${field}: ${value.join(", ")}`);
+                        } else if (typeof value === "string") {
+                            fieldErrors.push(`${field}: ${value}`);
+                        }
+                    }
+                    if (fieldErrors.length > 0) {
+                        message = fieldErrors.join("\n");
+                    }
+                }
+            } else if (typeof errorData === "string") {
+                message = errorData;
             }
         } catch {
             // ignore parsing errors
         }
-        throw new Error(message);
+        
+        const error = new Error(message);
+        // Сохраняем полные данные ошибки для дальнейшего использования
+        if (errorData) {
+            (error as Error & { data?: unknown }).data = errorData;
+        }
+        throw error;
     }
 
     if (response.status === 204) {

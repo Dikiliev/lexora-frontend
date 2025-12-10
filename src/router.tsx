@@ -6,6 +6,8 @@ import Profile from "./pages/Profile";
 import PostJob from "./pages/PostJob";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
+import ResendVerification from "./pages/ResendVerification";
 import TranslatorSettings from "./pages/TranslatorSettings";
 import ClientSettings from "./pages/ClientSettings";
 import ClientProfile from "./pages/ClientProfile";
@@ -36,6 +38,8 @@ export const router = createBrowserRouter([
             },
             { path: "login", element: <Login /> },
             { path: "register", element: <Register /> },
+            { path: "verify-email", element: <VerifyEmail /> },
+            { path: "resend-verification", element: <ResendVerification /> },
             {
                 path: "chats",
                 element: (
