@@ -85,8 +85,8 @@ function getStatusLabel(status: string): string {
     return statusMap[status] || status;
 }
 
-function getStatusColor(status: string): "default" | "primary" | "success" | "warning" | "error" {
-    const colorMap: Record<string, "default" | "primary" | "success" | "warning" | "error"> = {
+function getStatusColor(status: string): "default" | "primary" | "success" | "warning" | "error" | "info" {
+    const colorMap: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
         draft: "default",
         published: "primary",
         candidate_found: "info",
@@ -108,7 +108,6 @@ export default function OrderDetail() {
     const [order, setOrder] = useState<OrderDetailDTO | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [bidsCount, setBidsCount] = useState(0);
 
     const isOwner = user?.id && order && order.client === user.id;
 
@@ -156,7 +155,6 @@ export default function OrderDetail() {
                     // Игнорируем ошибки при перезагрузке
                 });
         }
-        setBidsCount((prev) => prev + 1);
     };
 
     const handleBidAccepted = () => {

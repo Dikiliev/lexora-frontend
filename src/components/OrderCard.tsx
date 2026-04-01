@@ -1,5 +1,4 @@
 import {
-    Box,
     Card,
     CardActionArea,
     CardContent,
@@ -68,8 +67,8 @@ function getStatusLabel(status: string): string {
     return statusMap[status] || status;
 }
 
-function getStatusColor(status: string): "default" | "primary" | "success" | "warning" | "error" {
-    const colorMap: Record<string, "default" | "primary" | "success" | "warning" | "error"> = {
+function getStatusColor(status: string): "default" | "primary" | "success" | "warning" | "error" | "info" {
+    const colorMap: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
         draft: "default",
         published: "primary",
         candidate_found: "info",
