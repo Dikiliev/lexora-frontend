@@ -2,6 +2,8 @@ import { createBrowserRouter } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
+import OrdersSearch from "./pages/OrdersSearch";
+import OrderDetail from "./pages/OrderDetail";
 import Profile from "./pages/Profile";
 import PostJob from "./pages/PostJob";
 import Login from "./pages/Login";
@@ -26,6 +28,8 @@ export const router = createBrowserRouter([
         children: [
             { index: true, element: <Home /> },
             { path: "search", element: <Search /> },
+            { path: "orders", element: <OrdersSearch /> },
+            { path: "orders/:id", element: <OrderDetail /> },
             { path: "translator/:id", element: <Profile /> },
             { path: "client/:id", element: <ClientProfile /> },
             {

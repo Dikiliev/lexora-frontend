@@ -123,10 +123,10 @@ export function ChatOrderCard({
     };
 
     const showAcceptReject =
-        isTranslator && order.status === "pending_translator";
+        (isTranslator || isClient) && order.status === "pending_translator";
 
     const showRequestChange =
-        isTranslator &&
+        (isTranslator || isClient) &&
         ["pending_translator", "pending_client_payment"].includes(order.status);
 
     const showMarkPaid =
@@ -415,17 +415,19 @@ export function ChatOrderCard({
                                 onClick={() => onAction?.("accept")}
                                 disabled={loadingAction === "accept"}
                             >
-                                Принять
+                                {isClient ? "Принять условия" : "Принять"}
                             </Button>
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                color="inherit"
-                                onClick={() => onAction?.("reject")}
-                                disabled={loadingAction === "reject"}
-                            >
-                                Отклонить
-                            </Button>
+                            {isTranslator && (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="inherit"
+                                    onClick={() => onAction?.("reject")}
+                                    disabled={loadingAction === "reject"}
+                                >
+                                    Отклонить
+                                </Button>
+                            )}
                         </>
                     )}
 
@@ -477,12 +479,12 @@ export function ChatOrderCard({
                     {showRequestChange && (
                         <Button
                             size="small"
-                            variant="text"
-                            color="inherit"
+                            variant={isClient ? "outlined" : "text"}
+                            color={isClient ? "primary" : "inherit"}
                             onClick={() => onRequestChange?.(order)}
                             disabled={loadingAction === "request-change"}
                         >
-                            Предложить другие условия
+                            {isClient ? "Изменить условия" : "Предложить другие условия"}
                         </Button>
                     )}
 

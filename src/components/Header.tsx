@@ -32,6 +32,7 @@ import { useChatNotificationStore } from "../stores/chatNotificationsStore";
 
 const NAV = [
     { label: "Каталог", to: "/search" },
+    { label: "Заказы", to: "/orders" },
 ];
 
 const APPBAR_H = 72;
@@ -172,24 +173,17 @@ export default function Header() {
                                             </Badge>
                                             Чаты
                                         </Link>
-                                        {/*{isClient && (*/}
-                                        {/*    <Link*/}
-                                        {/*        component={RouterLink}*/}
-                                        {/*        to="/post-job"*/}
-                                        {/*        underline="none"*/}
-                                        {/*        sx={{*/}
-                                        {/*            fontWeight: 600,*/}
-                                        {/*            color: pathname === "/post-job" ? "primary.main" : "text.primary",*/}
-                                        {/*            "&:hover": { color: "primary.main" },*/}
-                                        {/*            display: "flex",*/}
-                                        {/*            alignItems: "center",*/}
-                                        {/*            gap: 0.5,*/}
-                                        {/*        }}*/}
-                                        {/*    >*/}
-                                        {/*        <PostAddRoundedIcon fontSize="small" />*/}
-                                        {/*        Разместить заказ*/}
-                                        {/*    </Link>*/}
-                                        {/*)}*/}
+                                        {isClient && (
+                                            <Button
+                                                variant="contained"
+                                                component={RouterLink}
+                                                to="/post-job"
+                                                startIcon={<PostAddRoundedIcon />}
+                                                size="small"
+                                            >
+                                                Разместить заказ
+                                            </Button>
+                                        )}
                                         <Link
                                             component="button"
                                             onClick={(event) => setMenuAnchor(event.currentTarget)}
