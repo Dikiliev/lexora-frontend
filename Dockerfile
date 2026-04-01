@@ -3,12 +3,13 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-COPY lexora-frontend/package.json \
-     lexora-frontend/package-lock.json* ./
+# Копируем только файлы зависимостей
+COPY package.json package-lock.json* ./
 
 RUN npm install
 
-COPY lexora-frontend/ ./
+# Копируем остальной код
+COPY . ./
 
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
@@ -33,4 +34,3 @@ RUN echo 'server {' > /etc/nginx/conf.d/frontend.conf && \
     echo '}' >> /etc/nginx/conf.d/frontend.conf
 
 COPY --from=build /app/dist /usr/share/nginx/html
-
